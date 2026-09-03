@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <title>Min Træning</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --dark: #111827;
+      --danger: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 520px;
+      min-height: 100vh;
+      padding: max(28px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    header { margin: 10px 4px 28px; }
+    h1 { margin: 0; font-size: 2rem; line-height: 1.1; }
+    .subtitle { margin: 8px 0 0; color: var(--muted); }
+
+    .menu {
+      display: grid;
+      gap: 14px;
+    }
+
+    .menu-button {
+      width: 100%;
+      min-height: 76px;
+      border: 0;
+      border-radius: 18px;
+      background: var(--card);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .menu-button:active,
+    .action-button:active,
+    .back-button:active,
+    .adjust-button:active {
+      transform: scale(0.99);
+    }
+
+    .icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--dark);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 1.35rem;
+      flex: 0 0 auto;
+    }
+
+    .back-button {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 4px 0 18px;
+      cursor: pointer;
+    }
+
+    .exercise-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    }
+
+    .exercise-title {
+      margin: 0 0 14px;
+      font-size: 1.55rem;
+    }
+
+    .image-placeholder {
+      min-height: 190px;
+      max-height: 360px;
+      border-radius: 16px;
+      background: #e5e7eb;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 18px;
+      text-align: center;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .image-placeholder img {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: 340px;
+      object-fit: contain;
+      background: #fff;
+      margin: 0 auto;
+    }
+
+    .values {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .adjust-row {
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .value-label {
+      display: block;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .adjust-controls {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .adjust-button {
+      min-height: 52px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--dark);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .value-input {
+      width: 100%;
+      min-height: 52px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      padding: 0 8px;
+    }
+
+    .set-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .value-number {
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
+    .actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .action-button {
+      border: 0;
+      border-radius: 16px;
+      min-height: 58px;
+      padding: 0 16px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: var(--dark);
+      color: #fff;
+    }
+
+    .secondary {
+      background: #fff;
+      color: var(--text);
+      border: 2px solid #d1d5db;
+    }
+
+    .danger {
+      background: #fff;
+      color: var(--danger);
+      border: 2px solid #fecaca;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .rest-overlay {
+      display: none;
+      margin-top: 16px;
+      background: #f9fafb;
+      border-radius: 16px;
+      padding: 18px;
+      text-align: center;
+    }
+    .rest-overlay.active { display: block; }
+    .rest-title { margin: 0 0 6px; color: var(--muted); font-weight: 700; }
+    .rest-time { font-size: 2.4rem; font-weight: 900; margin: 4px 0 14px; }
+
+    .form-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 50px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      font-size: 1rem;
+      padding: 0 12px;
+    }
+
+    .machine-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      display: grid;
+      grid-template-columns: 76px 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .machine-thumb {
+      width: 76px;
+      height: 92px;
+      border-radius: 14px;
+      background: #e5e7eb;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: .78rem;
+      text-align: center;
+    }
+
+    .machine-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .image-preview img {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: 420px;
+      object-fit: contain;
+      background: #fff;
+      margin: 0 auto;
+    }
+
+    .small-button {
+      min-height: 42px;
+      border: 0;
+      border-radius: 12px;
+      background: #f3f4f6;
+      color: var(--text);
+      font-weight: 800;
+      padding: 0 10px;
+    }
+
+    .image-preview {
+      width: 100%;
+      min-height: 180px;
+      height: auto;
+      max-height: 420px;
+      border-radius: 16px;
+      background: #e5e7eb;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding: 8px;
+    }
+
+    .image-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .file-trigger {
+      min-height: 50px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--dark);
+      color: #fff;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 0 10px;
+      cursor: pointer;
+    }
+
+    .hidden { display: none !important; }
+
+
+    .program-machine-row {
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .program-machine-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .program-values {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .program-value label {
+      display: block;
+      font-size: .78rem;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .program-value input {
+      width: 100%;
+      min-height: 42px;
+      border: 2px solid #d1d5db;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      text-align: center;
+      font-size: .95rem;
+      font-weight: 700;
+      padding: 0 5px;
+    }
+
+    .program-machine-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .program-machine-actions button {
+      min-width: 40px;
+      min-height: 40px;
+      border: 0;
+      border-radius: 10px;
+      background: #e5e7eb;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .checkbox-row input {
+      width: 22px;
+      height: 22px;
+    }
+
+    .setting-row {
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .setting-row label {
+      display: block;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .setting-help {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-top: 6px;
+    }
+
+    .toggle-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .toggle-line input {
+      width: 24px;
+      height: 24px;
+    }
+
+    .settings-number {
+      width: 100%;
+      min-height: 50px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      font-size: 1rem;
+      padding: 0 12px;
+    }
+
+    .text-area {
+      width: 100%;
+      min-height: 190px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      padding: 12px;
+      resize: vertical;
+    }
+
+    .code-help {
+      font-size: .86rem;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+
+    .progress-up,
+    .progress-same,
+    .progress-down {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: .86rem;
+      font-weight: 800;
+    }
+
+    .history-machine {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .last-time-box {
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    .last-time-title {
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .last-time-text {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .history-card {
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+
+    .history-summary {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 16px 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .history-summary-main {
+      min-width: 0;
+    }
+
+    .history-summary-date {
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .history-summary-program {
+      margin-top: 3px;
+    }
+
+    .history-summary-count {
+      color: var(--muted);
+      margin-top: 3px;
+      font-size: .92rem;
+    }
+
+    .history-chevron {
+      font-size: 1.25rem;
+      font-weight: 900;
+      transition: transform .15s ease;
+    }
+
+    .history-card.open .history-chevron {
+      transform: rotate(180deg);
+    }
+
+    .history-details {
+      display: none;
+      padding: 0 18px 18px;
+    }
+
+    .history-card.open .history-details {
+      display: block;
+    }
+
+    footer {
+      color: var(--muted);
+      text-align: center;
+      margin-top: 28px;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+
+    <section id="home-screen" class="screen active">
+      <header>
+        <h1>Min Træning</h1>
+        <p class="subtitle">Vælg hvad du vil gøre</p>
+      </header>
+
+      <section class="menu">
+        <button class="menu-button" id="start-training" type="button">
+          <span class="icon">▶</span><span>Start træning</span>
+        </button>
+        <button class="menu-button" id="programs-button" type="button">
+          <span class="icon">📋</span><span>Programmer</span>
+        </button>
+        <button class="menu-button" id="machines-button" type="button">
+          <span class="icon">🏋</span><span>Maskiner</span>
+        </button>
+        <button class="menu-button" id="history-button" type="button">
+          <span class="icon">◷</span><span>Historik</span>
+        </button>
+        <button class="menu-button" id="settings-button" type="button">
+          <span class="icon">⚙</span><span>Indstillinger</span>
+        </button>
+      </section>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+    <section id="program-screen" class="screen">
+      <button class="back-button" id="back-home" type="button">← Tilbage</button>
+
+      <header>
+        <h1>Start træning</h1>
+        <p class="subtitle">Vælg et program</p>
+      </header>
+
+      <section class="menu" id="start-program-list"></section>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+    <section id="programs-screen" class="screen">
+      <button class="back-button" id="programs-back" type="button">← Tilbage</button>
+
+      <header>
+        <h1>Programmer</h1>
+        <p class="subtitle">Opret og redigér træningsprogrammer</p>
+      </header>
+
+      <section class="menu" id="programs-list"></section>
+
+      <div class="actions" style="margin-top:18px;">
+        <button class="action-button primary" id="add-program-button" type="button">+ Opret program</button>
+        <button class="action-button secondary" id="copy-machines-chatgpt" type="button">Kopiér maskiner til ChatGPT</button>
+        <button class="action-button secondary" id="open-program-import" type="button">Importer program fra ChatGPT</button>
+      </div>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+
+    <section id="program-import-screen" class="screen">
+      <button class="back-button" id="program-import-back" type="button">← Tilbage</button>
+
+      <header>
+        <h1>Importer program</h1>
+        <p class="subtitle">Indsæt svaret fra ChatGPT</p>
+      </header>
+
+      <section class="form-card">
+        <div class="field">
+          <label for="program-import-text">Programdata</label>
+          <textarea class="text-area" id="program-import-text"
+            placeholder='{"name":"Helkrop A","exercises":[...]}'></textarea>
+          <div class="code-help">
+            Appen matcher maskiner på navn. Vægt, reps og sæt bliver gemt som værdier i programmet.
+          </div>
+        </div>
+
+        <button class="action-button primary" id="import-program-button" type="button" style="width:100%;">
+          Importer program
+        </button>
+      </section>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+    <section id="program-edit-screen" class="screen">
+      <button class="back-button" id="program-edit-back" type="button">← Tilbage</button>
+
+      <header>
+        <h1 id="program-edit-title">Opret program</h1>
+        <p class="subtitle">Vælg maskiner og rækkefølge</p>
+      </header>
+
+      <section class="form-card">
+        <div class="field">
+          <label for="program-name-input">Programnavn</label>
+          <input id="program-name-input" type="text" placeholder="Fx Helkrop A">
+        </div>
+
+        <div class="field">
+          <label>Vælg maskiner</label>
+          <div id="program-machine-choices"></div>
+        </div>
+
+        <div class="field">
+          <label>Rækkefølge</label>
+          <div id="program-selected-machines"></div>
+        </div>
+
+        <button class="action-button primary" id="save-program-button" type="button" style="width:100%;">Gem program</button>
+        <button class="action-button danger hidden" id="delete-program-button" type="button">Slet program</button>
+      </section>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+    <section id="training-screen" class="screen">
+      <button class="back-button" id="back-programs" type="button">← Tilbage</button>
+
+      <header>
+        <h1 id="training-program-name">Træning</h1>
+        <p class="subtitle" id="machine-number">Maskine 1</p>
+      </header>
+
+      <section class="exercise-card">
+        <h2 class="exercise-title" id="exercise-title">Maskine</h2>
+
+        <div class="image-placeholder" id="training-image">Intet billede</div>
+
+        <div class="last-time-box">
+          <div class="last-time-title">Sidste gang</div>
+          <div class="last-time-text" id="last-time-text">Ingen tidligere træning registreret.</div>
+        </div>
+
+        <div class="values">
+          <div class="adjust-row">
+            <span class="value-label">Vægt</span>
+            <div class="adjust-controls">
+              <button class="adjust-button" id="weight-minus" type="button">− 2,5</button>
+              <input class="value-input" id="weight-input" type="number" inputmode="decimal" step="0.5" min="0" value="50" aria-label="Vægt i kg">
+              <button class="adjust-button" id="weight-plus" type="button">+ 2,5</button>
+            </div>
+          </div>
+
+          <div class="adjust-row">
+            <span class="value-label">Gentagelser</span>
+            <div class="adjust-controls">
+              <button class="adjust-button" id="reps-minus" type="button">− 1</button>
+              <input class="value-input" id="reps-input" type="number" inputmode="numeric" step="1" min="0" value="10" aria-label="Gentagelser">
+              <button class="adjust-button" id="reps-plus" type="button">+ 1</button>
+            </div>
+          </div>
+
+          <div class="set-row">
+            <span class="value-label" style="margin:0;">Sæt</span>
+            <span class="value-number" id="set-display">1 / 3</span>
+          </div>
+        </div>
+
+        <div id="completed-sets" style="display:grid;gap:8px;margin-bottom:12px;"></div>
+
+        <div class="actions">
+          <button class="action-button primary" id="finish-set" type="button">Færdig med sæt</button>
+          <button class="action-button secondary" id="next-machine" type="button">Næste maskine</button>
+        </div>
+
+        <div class="rest-overlay" id="rest-overlay">
+          <p class="rest-title">Hviletid</p>
+          <div class="rest-time" id="rest-time">60</div>
+          <button class="action-button secondary" id="skip-rest" type="button">Spring over</button>
+        </div>
+
+        <div class="rest-overlay" id="machine-complete">
+          <p class="rest-title">Maskine færdig</p>
+          <div class="rest-time">✓</div>
+        </div>
+      </section>
+
+      <button class="action-button danger" id="cancel-training" type="button">Afbryd træning</button>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+
+
+
+    <section id="settings-screen" class="screen">
+      <button class="back-button" id="settings-back" type="button">← Tilbage</button>
+
+      <header>
+        <h1>Indstillinger</h1>
+        <p class="subtitle">Træning og backup</p>
+      </header>
+
+      <section class="form-card">
+        <div class="setting-row">
+          <div class="toggle-line">
+            <div>
+              <strong>Hold skærm tændt</strong>
+              <div class="setting-help" id="wake-status">Fra</div>
+            </div>
+            <input id="wake-lock-toggle" type="checkbox" aria-label="Hold skærm tændt">
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <label for="rest-seconds-input">Standard hviletid</label>
+          <input class="settings-number" id="rest-seconds-input" type="number"
+                 inputmode="numeric" min="15" max="300" step="5" value="60">
+          <div class="setting-help">Sekunder mellem sæt.</div>
+        </div>
+
+
+        <div class="setting-row">
+          <label>App</label>
+          <div class="actions">
+            <button class="action-button secondary hidden" id="install-app-button" type="button">
+              Installer app
+            </button>
+          </div>
+          <div class="setting-help" id="install-app-help">
+            Når appen ligger på HTTPS, kan den installeres på startskærmen.
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <label>Backup</label>
+          <div class="actions">
+            <button class="action-button secondary" id="export-backup-button" type="button">Eksporter backup</button>
+            <button class="action-button secondary" id="restore-backup-button" type="button">Gendan backup</button>
+          </div>
+          <input class="hidden" id="restore-backup-input" type="file" accept="application/json,.json">
+          <div class="setting-help">Gemmer maskiner, billeder, programmer, historik og indstillinger.</div>
+        </div>
+      </section>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+    <section id="machines-screen" class="screen">
+      <button class="back-button" id="machines-back" type="button">← Tilbage</button>
+
+      <header>
+        <h1>Maskiner</h1>
+        <p class="subtitle">Dit maskinbibliotek</p>
+      </header>
+
+      <section class="menu" id="machines-list"></section>
+
+      <div class="actions" style="margin-top:18px;">
+        <button class="action-button primary" id="add-machine-button" type="button">+ Tilføj maskine</button>
+      </div>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+    <section id="add-machine-screen" class="screen">
+      <button class="back-button" id="add-machine-back" type="button">← Tilbage</button>
+
+      <header>
+        <h1 id="machine-form-title">Tilføj maskine</h1>
+        <p class="subtitle">Grundoplysninger</p>
+      </header>
+
+      <section class="form-card">
+        <div class="field">
+          <label>Billede</label>
+          <div class="image-preview" id="machine-image-preview">Intet billede valgt</div>
+
+          <div class="image-actions">
+            <label class="file-trigger" for="machine-camera-input">📷 Tag billede</label>
+            <label class="file-trigger" for="machine-gallery-input">🖼 Vælg billede</label>
+          </div>
+
+          <input class="hidden" id="machine-camera-input" type="file" accept="image/*" capture="environment">
+          <input class="hidden" id="machine-gallery-input" type="file" accept="image/*">
+        </div>
+
+        <div class="field">
+          <label for="machine-name-input">Navn</label>
+          <input id="machine-name-input" type="text" placeholder="Fx Chest Press">
+        </div>
+
+        <div class="field">
+          <label for="machine-group-input">Muskelgruppe</label>
+          <select id="machine-group-input">
+            <option value="Ben">Ben</option>
+            <option value="Ryg">Ryg</option>
+            <option value="Bryst">Bryst</option>
+            <option value="Skuldre">Skuldre</option>
+            <option value="Arme">Arme</option>
+            <option value="Mave/Core">Mave/Core</option>
+            <option value="Andet">Andet</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="machine-weight-input">Standardvægt (kg)</label>
+          <input id="machine-weight-input" type="number" inputmode="decimal" min="0" step="0.5" value="20">
+        </div>
+
+        <div class="field">
+          <label for="machine-reps-input">Standard gentagelser</label>
+          <input id="machine-reps-input" type="number" inputmode="numeric" min="1" step="1" value="10">
+        </div>
+
+        <div class="field">
+          <label for="machine-sets-input">Standard sæt</label>
+          <input id="machine-sets-input" type="number" inputmode="numeric" min="1" step="1" value="3">
+        </div>
+
+        <button class="action-button primary" id="save-machine-button" type="button" style="width:100%;">Gem maskine</button>
+        <button class="action-button danger hidden" id="delete-machine-button" type="button">Slet maskine</button>
+      </section>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+    <section id="history-screen" class="screen">
+      <button class="back-button" id="history-back" type="button">← Tilbage</button>
+
+      <header>
+        <h1>Historik</h1>
+        <p class="subtitle">Gennemførte træninger</p>
+      </header>
+
+      <section class="menu" id="history-list"></section>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+    <section id="complete-screen" class="screen">
+      <header>
+        <h1>Træning gennemført</h1>
+        <p class="subtitle">Godt arbejde</p>
+      </header>
+
+      <section class="exercise-card">
+        <div class="values">
+          <div class="set-row">
+            <span class="value-label" style="margin:0;">Program</span>
+            <span class="value-number" id="complete-program-name">Program</span>
+          </div>
+          <div class="set-row">
+            <span class="value-label" style="margin:0;">Maskiner gennemført</span>
+            <span class="value-number" id="complete-machine-count">0</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="action-button primary" id="complete-home" type="button">Til forsiden</button>
+        </div>
+      </section>
+
+      <footer>Prototype v2.3</footer>
+    </section>
+
+  </main>
+
+  <script>
+    const screens = {
+      home: document.getElementById("home-screen"),
+      startPrograms: document.getElementById("program-screen"),
+      training: document.getElementById("training-screen"),
+      programs: document.getElementById("programs-screen"),
+      programImport: document.getElementById("program-import-screen"),
+      programEdit: document.getElementById("program-edit-screen"),
+      settings: document.getElementById("settings-screen"),
+      machines: document.getElementById("machines-screen"),
+      addMachine: document.getElementById("add-machine-screen"),
+      history: document.getElementById("history-screen"),
+      complete: document.getElementById("complete-screen")
+    };
+
+    let currentScreenName = "home";
+
+    function showScreen(name, addHistory = true) {
+      if (!screens[name]) return;
+
+      Object.values(screens).forEach(screen => screen.classList.remove("active"));
+      screens[name].classList.add("active");
+      currentScreenName = name;
+      window.scrollTo(0, 0);
+
+      if (addHistory) {
+        history.pushState({ screen: name }, "", "");
+      }
+    }
+
+    // Start app navigation history on the home screen.
+    history.replaceState({ screen: "home" }, "", "");
+
+    window.addEventListener("popstate", event => {
+      const target = event.state?.screen || "home";
+      showScreen(target, false);
+    });
+
+    document.getElementById("start-training").addEventListener("click", () => {
+      renderStartPrograms();
+      showScreen("startPrograms");
+    });
+    document.getElementById("back-home").addEventListener("click", () => history.back());
+    document.getElementById("back-programs").addEventListener("click", () => history.back());
+
+    document.getElementById("cancel-training").addEventListener("click", () => {
+      if (confirm("Vil du afbryde træningen?")) {
+        workoutSetLog = [];
+        resetTrainingValues();
+        history.replaceState({ screen: "home" }, "", "");
+        showScreen("home", false);
+      }
+    });
+
+    const weightInput = document.getElementById("weight-input");
+    const repsInput = document.getElementById("reps-input");
+
+    const SETTINGS_KEY = "motionAppSettingsV1";
+
+    function getSettings() {
+      const defaults = { wakeLock: false, restSeconds: 60 };
+      try {
+        return { ...defaults, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") };
+      } catch {
+        return defaults;
+      }
+    }
+
+    function saveSettings(settings) {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+
+    let activeExercises = [];
+    let activeProgram = null;
+    let currentExerciseIndex = 0;
+    let currentSet = 1;
+    let totalSets = 3;
+    const setDisplay = document.getElementById("set-display");
+    const exerciseTitle = document.getElementById("exercise-title");
+    const machineNumber = document.getElementById("machine-number");
+    const trainingImage = document.getElementById("training-image");
+    const completedSetsBox = document.getElementById("completed-sets");
+    const lastTimeText = document.getElementById("last-time-text");
+    const restOverlay = document.getElementById("rest-overlay");
+    const restTime = document.getElementById("rest-time");
+    const machineComplete = document.getElementById("machine-complete");
+    const finishSetButton = document.getElementById("finish-set");
+    const nextMachineButton = document.getElementById("next-machine");
+    let restSeconds = 60;
+    let restTimer = null;
+    let machineFinished = false;
+    let workoutSetLog = [];
+
+    function updateSetDisplay() {
+      setDisplay.textContent = `${currentSet} / ${totalSets}`;
+    }
+
+    function stopRestTimer() {
+      if (restTimer) clearInterval(restTimer);
+      restTimer = null;
+      restOverlay.classList.remove("active");
+    }
+
+    function startRestTimer() {
+      stopRestTimer();
+      restSeconds = Math.max(15, Math.min(300, Number(getSettings().restSeconds) || 60));
+      restTime.textContent = restSeconds;
+      restOverlay.classList.add("active");
+
+      restTimer = setInterval(() => {
+        restSeconds -= 1;
+        restTime.textContent = restSeconds;
+        if (restSeconds <= 0) stopRestTimer();
+      }, 1000);
+    }
+
+    function getCurrentExerciseLog() {
+      if (!activeExercises[currentExerciseIndex]) return [];
+      const id = activeExercises[currentExerciseIndex].id;
+      return workoutSetLog.filter(item => item.machineId === id);
+    }
+
+    function renderCompletedSets() {
+      completedSetsBox.innerHTML = "";
+      const rows = getCurrentExerciseLog();
+      rows.forEach((row, index) => {
+        const div = document.createElement("div");
+        div.className = "set-row";
+        div.innerHTML = `
+          <span class="value-label" style="margin:0;">Sæt ${index + 1}</span>
+          <span class="value-number">${row.weight} kg × ${row.reps}</span>
+        `;
+        completedSetsBox.appendChild(div);
+      });
+    }
+
+    function getLastCompletedSetsForExercise(exercise) {
+      const history = getHistory();
+
+      for (const entry of history) {
+        if (!Array.isArray(entry.sets)) continue;
+
+        const rows = entry.sets.filter(row =>
+          (row.machineId && row.machineId === exercise.id) ||
+          (!row.machineId && row.machineName === exercise.name) ||
+          row.machineName === exercise.name
+        );
+
+        if (rows.length) {
+          return {
+            rows,
+            date: entry.date
+          };
+        }
+      }
+
+      return null;
+    }
+
+    function renderLastTime(exercise) {
+      const previous = getLastCompletedSetsForExercise(exercise);
+
+      if (!previous) {
+        lastTimeText.textContent = "Ingen tidligere træning registreret.";
+        return;
+      }
+
+      const setText = previous.rows
+        .map(row => `${row.weight} kg × ${row.reps}`)
+        .join(" · ");
+
+      const date = new Date(previous.date).toLocaleDateString("da-DK", {
+        day: "numeric",
+        month: "short"
+      });
+
+      lastTimeText.textContent = `${date}: ${setText}`;
+    }
+
+    async function renderTrainingImage(machineId) {
+      const image = await imageGet(machineId).catch(() => null);
+      if (image) {
+        trainingImage.innerHTML = `<img src="${image}" alt="Maskinbillede">`;
+      } else {
+        trainingImage.textContent = "Intet billede";
+      }
+    }
+
+    function saveCurrentSetToLog() {
+      const exercise = activeExercises[currentExerciseIndex];
+      if (!exercise) return;
+
+      workoutSetLog.push({
+        machineId: exercise.id,
+        machineName: exercise.name,
+        weight: Number(weightInput.value) || 0,
+        reps: Number(repsInput.value) || 0
+      });
+
+      renderCompletedSets();
+    }
+
+    function loadExercise(index) {
+      currentExerciseIndex = index;
+      const exercise = activeExercises[currentExerciseIndex];
+      totalSets = Number(exercise.sets) || 3;
+
+      stopRestTimer();
+      machineComplete.classList.remove("active");
+      machineFinished = false;
+      finishSetButton.disabled = false;
+      finishSetButton.textContent = "Færdig med sæt";
+      nextMachineButton.classList.remove("primary");
+      nextMachineButton.classList.add("secondary");
+      nextMachineButton.textContent = currentExerciseIndex === activeExercises.length - 1
+        ? "Afslut træning"
+        : "Næste maskine";
+
+      exerciseTitle.textContent = exercise.name;
+      machineNumber.textContent = `Maskine ${currentExerciseIndex + 1}`;
+      weightInput.value = exercise.weight;
+      repsInput.value = exercise.reps;
+      currentSet = 1;
+      updateSetDisplay();
+      renderCompletedSets();
+      renderLastTime(exercise);
+      renderTrainingImage(exercise.id);
+    }
+
+    function resetTrainingValues() {
+      if (activeExercises.length) loadExercise(0);
+    }
+
+    function changeNumber(input, amount, decimals = 0) {
+      const current = parseFloat(input.value) || 0;
+      const next = Math.max(0, current + amount);
+      input.value = decimals ? next.toFixed(decimals).replace(".0", "") : Math.round(next);
+    }
+
+    document.getElementById("weight-minus").addEventListener("click", () => changeNumber(weightInput, -2.5, 1));
+    document.getElementById("weight-plus").addEventListener("click", () => changeNumber(weightInput, 2.5, 1));
+    document.getElementById("reps-minus").addEventListener("click", () => changeNumber(repsInput, -1));
+    document.getElementById("reps-plus").addEventListener("click", () => changeNumber(repsInput, 1));
+
+    finishSetButton.addEventListener("click", () => {
+      if (machineFinished) return;
+
+      saveCurrentSetToLog();
+
+      if (currentSet < totalSets) {
+        currentSet += 1;
+        updateSetDisplay();
+        startRestTimer();
+      } else {
+        stopRestTimer();
+        machineFinished = true;
+        machineComplete.classList.add("active");
+        finishSetButton.disabled = true;
+        finishSetButton.textContent = "Sæt færdige";
+        nextMachineButton.classList.remove("secondary");
+        nextMachineButton.classList.add("primary");
+      }
+    });
+
+    document.getElementById("skip-rest").addEventListener("click", stopRestTimer);
+
+    nextMachineButton.addEventListener("click", () => {
+      if (!machineFinished) return;
+
+      if (currentExerciseIndex < activeExercises.length - 1) {
+        loadExercise(currentExerciseIndex + 1);
+      } else {
+        saveCompletedTraining();
+        document.getElementById("complete-program-name").textContent = activeProgram?.name || "Program";
+        document.getElementById("complete-machine-count").textContent = activeExercises.length;
+        showScreen("complete");
+      }
+    });
+
+    document.getElementById("complete-home").addEventListener("click", () => {
+      activeProgram = null;
+      activeExercises = [];
+      workoutSetLog = [];
+      history.replaceState({ screen: "home" }, "", "");
+      showScreen("home", false);
+    });
+
+
+
+    const PROGRAMS_KEY = "motionAppProgramsV2";
+    let editingProgramId = null;
+    let selectedProgramExercises = [];
+
+    function normalizeProgramExercise(item) {
+      const machine = machineById(item.machineId);
+      if (!machine) return null;
+
+      return {
+        machineId: item.machineId,
+        weight: Number.isFinite(Number(item.weight)) ? Number(item.weight) : Number(machine.weight) || 0,
+        reps: Number.isFinite(Number(item.reps)) ? Number(item.reps) : Number(machine.reps) || 10,
+        sets: Number.isFinite(Number(item.sets)) ? Number(item.sets) : Number(machine.sets) || 3
+      };
+    }
+
+    function getPrograms() {
+      let programs = [];
+      let changed = false;
+
+      try {
+        programs = JSON.parse(localStorage.getItem(PROGRAMS_KEY) || "[]");
+      } catch {}
+
+      // Migrate older program format from v1.4-v1.6.
+      if (!Array.isArray(programs) || programs.length === 0) {
+        try {
+          const legacy = JSON.parse(localStorage.getItem("motionAppProgramsV1") || "[]");
+          if (Array.isArray(legacy) && legacy.length) {
+            programs = legacy.map(program => ({
+              id: program.id || "p_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+              name: program.name || "Program",
+              exercises: Array.isArray(program.exercises)
+                ? program.exercises.map(normalizeProgramExercise).filter(Boolean)
+                : (program.machineIds || []).map(machineId => normalizeProgramExercise({ machineId })).filter(Boolean)
+            }));
+            changed = true;
+          }
+        } catch {}
+      }
+
+      if (!Array.isArray(programs)) programs = [];
+
+      // First-run default.
+      if (programs.length === 0) {
+        const machines = getMachines();
+        if (machines.length) {
+          programs = [{
+            id: "p_" + Date.now(),
+            name: "Helkrop A",
+            exercises: machines.slice(0, 2).map(machine => ({
+              machineId: machine.id,
+              weight: Number(machine.weight) || 0,
+              reps: Number(machine.reps) || 10,
+              sets: Number(machine.sets) || 3
+            }))
+          }];
+          changed = true;
+        }
+      }
+
+      programs = programs.map(program => {
+        const exercises = Array.isArray(program.exercises)
+          ? program.exercises.map(normalizeProgramExercise).filter(Boolean)
+          : (program.machineIds || []).map(machineId => normalizeProgramExercise({ machineId })).filter(Boolean);
+
+        if (!Array.isArray(program.exercises) || program.machineIds) changed = true;
+
+        return {
+          id: program.id || "p_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+          name: program.name || "Program",
+          exercises
+        };
+      });
+
+      if (changed) savePrograms(programs);
+      return programs;
+    }
+
+    function savePrograms(programs) {
+      localStorage.setItem(PROGRAMS_KEY, JSON.stringify(programs));
+    }
+
+    function machineById(id) {
+      return getMachines().find(m => m.id === id) || null;
+    }
+
+    function renderStartPrograms() {
+      const list = document.getElementById("start-program-list");
+      list.innerHTML = "";
+      const programs = getPrograms();
+
+      if (!programs.length) {
+        const empty = document.createElement("div");
+        empty.className = "exercise-card";
+        empty.textContent = "Ingen programmer endnu. Opret et under Programmer.";
+        list.appendChild(empty);
+        return;
+      }
+
+      programs.forEach(program => {
+        const validExercises = program.exercises.filter(ex => machineById(ex.machineId));
+
+        const btn = document.createElement("button");
+        btn.className = "menu-button";
+        btn.type = "button";
+        btn.innerHTML = `<span class="icon">▶</span>
+          <span>${program.name}<br><small style="color:#6b7280;font-weight:600;">${validExercises.length} maskiner</small></span>`;
+
+        btn.addEventListener("click", () => startProgram(program.id));
+        list.appendChild(btn);
+      });
+    }
+
+    function startProgram(programId) {
+      const program = getPrograms().find(p => p.id === programId);
+      if (!program) return;
+
+      const exercises = program.exercises
+        .map(programExercise => {
+          const machine = machineById(programExercise.machineId);
+          if (!machine) return null;
+
+          return {
+            id: machine.id,
+            name: machine.name,
+            weight: String(programExercise.weight),
+            reps: String(programExercise.reps),
+            sets: Number(programExercise.sets) || 3
+          };
+        })
+        .filter(Boolean);
+
+      if (!exercises.length) {
+        alert("Programmet indeholder ingen gyldige maskiner.");
+        return;
+      }
+
+      activeProgram = program;
+      workoutSetLog = [];
+      activeExercises = exercises;
+
+      document.getElementById("training-program-name").textContent = program.name;
+      loadExercise(0);
+      showScreen("training");
+    }
+
+    async function renderPrograms() {
+      const list = document.getElementById("programs-list");
+      list.innerHTML = "";
+      const programs = getPrograms();
+
+      if (!programs.length) {
+        const empty = document.createElement("div");
+        empty.className = "exercise-card";
+        empty.textContent = "Ingen programmer endnu.";
+        list.appendChild(empty);
+        return;
+      }
+
+      programs.forEach(program => {
+        const validExercises = program.exercises.filter(ex => machineById(ex.machineId));
+
+        const card = document.createElement("div");
+        card.className = "machine-card";
+
+        const icon = document.createElement("div");
+        icon.className = "machine-thumb";
+        icon.textContent = "📋";
+
+        const info = document.createElement("div");
+        info.innerHTML = `<div style="font-weight:800;font-size:1.08rem;">${program.name}</div>
+          <div style="color:#6b7280;margin-top:4px;">${validExercises.length} maskiner</div>`;
+
+        const edit = document.createElement("button");
+        edit.className = "small-button";
+        edit.textContent = "Redigér";
+        edit.addEventListener("click", () => openProgramEditor(program.id));
+
+        card.append(icon, info, edit);
+        list.appendChild(card);
+      });
+    }
+
+    function renderProgramChoices() {
+      const choiceBox = document.getElementById("program-machine-choices");
+      choiceBox.innerHTML = "";
+
+      getMachines().forEach(machine => {
+        const row = document.createElement("label");
+        row.className = "checkbox-row";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = selectedProgramExercises.some(ex => ex.machineId === machine.id);
+
+        cb.addEventListener("change", () => {
+          if (cb.checked) {
+            if (!selectedProgramExercises.some(ex => ex.machineId === machine.id)) {
+              selectedProgramExercises.push({
+                machineId: machine.id,
+                weight: Number(machine.weight) || 0,
+                reps: Number(machine.reps) || 10,
+                sets: Number(machine.sets) || 3
+              });
+            }
+          } else {
+            selectedProgramExercises = selectedProgramExercises.filter(ex => ex.machineId !== machine.id);
+          }
+          renderProgramSelected();
+        });
+
+        const text = document.createElement("span");
+        text.textContent = machine.name;
+
+        row.append(cb, text);
+        choiceBox.appendChild(row);
+      });
+    }
+
+    function renderProgramSelected() {
+      const box = document.getElementById("program-selected-machines");
+      box.innerHTML = "";
+
+      if (!selectedProgramExercises.length) {
+        box.innerHTML = '<div style="color:#6b7280;">Ingen maskiner valgt endnu.</div>';
+        return;
+      }
+
+      selectedProgramExercises.forEach((exercise, index) => {
+        const machine = machineById(exercise.machineId);
+        if (!machine) return;
+
+        const row = document.createElement("div");
+        row.className = "program-machine-row";
+
+        const head = document.createElement("div");
+        head.className = "program-machine-head";
+
+        const name = document.createElement("div");
+        name.innerHTML = `<strong>${index + 1}. ${machine.name}</strong>`;
+
+        const actions = document.createElement("div");
+        actions.className = "program-machine-actions";
+
+        const up = document.createElement("button");
+        up.type = "button";
+        up.textContent = "↑";
+        up.disabled = index === 0;
+        up.addEventListener("click", () => {
+          [selectedProgramExercises[index - 1], selectedProgramExercises[index]] =
+            [selectedProgramExercises[index], selectedProgramExercises[index - 1]];
+          renderProgramSelected();
+        });
+
+        const down = document.createElement("button");
+        down.type = "button";
+        down.textContent = "↓";
+        down.disabled = index === selectedProgramExercises.length - 1;
+        down.addEventListener("click", () => {
+          [selectedProgramExercises[index + 1], selectedProgramExercises[index]] =
+            [selectedProgramExercises[index], selectedProgramExercises[index + 1]];
+          renderProgramSelected();
+        });
+
+        actions.append(up, down);
+        head.append(name, actions);
+
+        const values = document.createElement("div");
+        values.className = "program-values";
+
+        const fields = [
+          { key: "weight", label: "Kg", step: "0.5", min: "0" },
+          { key: "reps", label: "Reps", step: "1", min: "1" },
+          { key: "sets", label: "Sæt", step: "1", min: "1" }
+        ];
+
+        fields.forEach(field => {
+          const wrap = document.createElement("div");
+          wrap.className = "program-value";
+
+          const label = document.createElement("label");
+          label.textContent = field.label;
+
+          const input = document.createElement("input");
+          input.type = "number";
+          input.inputMode = field.key === "weight" ? "decimal" : "numeric";
+          input.step = field.step;
+          input.min = field.min;
+          input.value = exercise[field.key];
+
+          input.addEventListener("change", () => {
+            let value = Number(input.value);
+            if (!Number.isFinite(value)) {
+              value = field.key === "weight" ? 0 : 1;
+            }
+            if (field.key !== "weight") value = Math.max(1, Math.round(value));
+            else value = Math.max(0, value);
+
+            exercise[field.key] = value;
+            input.value = value;
+          });
+
+          wrap.append(label, input);
+          values.appendChild(wrap);
+        });
+
+        row.append(head, values);
+        box.appendChild(row);
+      });
+    }
+
+    function openProgramEditor(programId = null) {
+      editingProgramId = programId;
+      const deleteButton = document.getElementById("delete-program-button");
+
+      if (programId) {
+        const program = getPrograms().find(p => p.id === programId);
+        if (!program) return;
+        document.getElementById("program-edit-title").textContent = "Redigér program";
+        document.getElementById("program-name-input").value = program.name;
+        selectedProgramExercises = program.exercises.map(ex => ({ ...ex }));
+        deleteButton.classList.remove("hidden");
+      } else {
+        document.getElementById("program-edit-title").textContent = "Opret program";
+        document.getElementById("program-name-input").value = "";
+        selectedProgramExercises = [];
+        deleteButton.classList.add("hidden");
+      }
+
+      renderProgramChoices();
+      renderProgramSelected();
+      showScreen("programEdit");
+    }
+
+
+    function buildChatGptMachineText() {
+      const machines = getMachines();
+
+      const machineLines = machines.map(machine =>
+        `- ${machine.name} | muskelgruppe: ${machine.group || "Andet"} | standard: ${machine.weight} kg, ${machine.reps} reps, ${machine.sets} sæt`
+      ).join("\n");
+
+      return `Lav et træningsprogram til min motionsapp ud fra maskinerne nedenfor.
+
+Returnér KUN gyldig JSON i dette format:
+{
+  "name": "Programnavn",
+  "exercises": [
+    {
+      "machine": "Præcis maskinnavn",
+      "weight": 40,
+      "reps": 10,
+      "sets": 3
+    }
+  ]
+}
+
+Maskiner:
+${machineLines}`;
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.focus();
+        area.select();
+        let ok = false;
+        try { ok = document.execCommand("copy"); } catch {}
+        area.remove();
+        return ok;
+      }
+    }
+
+    function extractJsonObject(rawText) {
+      let text = rawText.trim();
+
+      // Accept fenced JSON from ChatGPT too.
+      text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+
+      const first = text.indexOf("{");
+      const last = text.lastIndexOf("}");
+      if (first >= 0 && last > first) {
+        text = text.slice(first, last + 1);
+      }
+
+      return JSON.parse(text);
+    }
+
+    function importProgramFromObject(data) {
+      if (!data || typeof data !== "object") throw new Error("Ugyldige data");
+      if (typeof data.name !== "string" || !data.name.trim()) throw new Error("Programnavn mangler");
+      if (!Array.isArray(data.exercises) || !data.exercises.length) throw new Error("Ingen øvelser");
+
+      const machines = getMachines();
+      const normalizedNames = new Map(
+        machines.map(machine => [machine.name.trim().toLocaleLowerCase("da-DK"), machine])
+      );
+
+      const exercises = [];
+      const missing = [];
+
+      for (const item of data.exercises) {
+        const requestedName = String(item.machine || item.name || "").trim();
+        if (!requestedName) continue;
+
+        const machine = normalizedNames.get(requestedName.toLocaleLowerCase("da-DK"));
+        if (!machine) {
+          missing.push(requestedName);
+          continue;
+        }
+
+        const weight = Number(item.weight);
+        const reps = Number(item.reps);
+        const sets = Number(item.sets);
+
+        exercises.push({
+          machineId: machine.id,
+          weight: Number.isFinite(weight) && weight >= 0 ? weight : Number(machine.weight) || 0,
+          reps: Number.isFinite(reps) && reps >= 1 ? Math.round(reps) : Number(machine.reps) || 10,
+          sets: Number.isFinite(sets) && sets >= 1 ? Math.round(sets) : Number(machine.sets) || 3
+        });
+      }
+
+      if (!exercises.length) {
+        throw new Error("Ingen maskiner kunne matches");
+      }
+
+      const programs = getPrograms();
+      programs.push({
+        id: "p_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+        name: data.name.trim(),
+        exercises
+      });
+      savePrograms(programs);
+
+      return { imported: exercises.length, missing };
+    }
+
+    document.getElementById("copy-machines-chatgpt").addEventListener("click", async () => {
+      const ok = await copyText(buildChatGptMachineText());
+      if (ok) {
+        alert("Maskinliste og instruktion er kopieret. Indsæt den i ChatGPT.");
+      } else {
+        alert("Kunne ikke kopiere automatisk på denne enhed.");
+      }
+    });
+
+    document.getElementById("open-program-import").addEventListener("click", () => {
+      document.getElementById("program-import-text").value = "";
+      showScreen("programImport");
+    });
+
+    document.getElementById("program-import-back").addEventListener("click", () => history.back());
+
+    document.getElementById("import-program-button").addEventListener("click", async () => {
+      const raw = document.getElementById("program-import-text").value;
+
+      try {
+        const data = extractJsonObject(raw);
+        const result = importProgramFromObject(data);
+        await renderPrograms();
+        showScreen("programs");
+
+        if (result.missing.length) {
+          alert(`Programmet er importeret med ${result.imported} maskiner.\nKunne ikke finde: ${result.missing.join(", ")}`);
+        } else {
+          alert(`Programmet er importeret med ${result.imported} maskiner.`);
+        }
+      } catch (error) {
+        alert("Programmet kunne ikke importeres. Kontrollér at du har indsat JSON fra ChatGPT.");
+      }
+    });
+
+    document.getElementById("programs-button").addEventListener("click", async () => {
+      await renderPrograms();
+      showScreen("programs");
+    });
+
+    document.getElementById("programs-back").addEventListener("click", () => history.back());
+    document.getElementById("add-program-button").addEventListener("click", () => openProgramEditor());
+    document.getElementById("program-edit-back").addEventListener("click", () => history.back());
+
+    document.getElementById("save-program-button").addEventListener("click", async () => {
+      const name = document.getElementById("program-name-input").value.trim();
+
+      if (!name) {
+        alert("Skriv et navn på programmet.");
+        return;
+      }
+
+      if (!selectedProgramExercises.length) {
+        alert("Vælg mindst én maskine.");
+        return;
+      }
+
+      const programs = getPrograms();
+
+      if (editingProgramId) {
+        const program = programs.find(p => p.id === editingProgramId);
+        if (!program) return;
+        program.name = name;
+        program.exercises = selectedProgramExercises.map(ex => ({ ...ex }));
+      } else {
+        programs.push({
+          id: "p_" + Date.now(),
+          name,
+          exercises: selectedProgramExercises.map(ex => ({ ...ex }))
+        });
+      }
+
+      savePrograms(programs);
+      await renderPrograms();
+      showScreen("programs");
+    });
+
+    document.getElementById("delete-program-button").addEventListener("click", async () => {
+      if (!editingProgramId || !confirm("Vil du slette dette program?")) return;
+      savePrograms(getPrograms().filter(p => p.id !== editingProgramId));
+      editingProgramId = null;
+      await renderPrograms();
+      showScreen("programs");
+    });
+
+    const MACHINES_KEY = "motionAppMachinesV1";
+    const IMAGE_DB = "motionAppImages";
+    const IMAGE_STORE = "machineImages";
+    let editingMachineId = null;
+    let selectedImageData = null;
+
+    function makeId() {
+      return "m_" + Date.now() + "_" + Math.random().toString(36).slice(2,7);
+    }
+
+    function getMachines() {
+      let machines = [];
+      try { machines = JSON.parse(localStorage.getItem(MACHINES_KEY) || "[]"); } catch {}
+      if (!Array.isArray(machines) || machines.length === 0) {
+        machines = [
+          {id: makeId(), name:"Benpres", group:"Ben", weight:50, reps:10, sets:3},
+          {id: makeId(), name:"Lat Pulldown", group:"Ryg", weight:35, reps:10, sets:3}
+        ];
+      }
+      let changed = false;
+      machines.forEach(m => {
+        if (!m.id) { m.id = makeId(); changed = true; }
+        if (!m.group) { m.group = "Andet"; changed = true; }
+      });
+      if (changed || !localStorage.getItem(MACHINES_KEY)) {
+        localStorage.setItem(MACHINES_KEY, JSON.stringify(machines));
+      }
+      return machines;
+    }
+
+    function saveMachines(machines) {
+      localStorage.setItem(MACHINES_KEY, JSON.stringify(machines));
+    }
+
+    function openImageDb() {
+      return new Promise((resolve,reject) => {
+        const req = indexedDB.open(IMAGE_DB, 1);
+        req.onupgradeneeded = () => {
+          if (!req.result.objectStoreNames.contains(IMAGE_STORE)) {
+            req.result.createObjectStore(IMAGE_STORE);
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function imagePut(id, data) {
+      const db = await openImageDb();
+      return new Promise((resolve,reject) => {
+        const tx = db.transaction(IMAGE_STORE, "readwrite");
+        tx.objectStore(IMAGE_STORE).put(data, id);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function imageGet(id) {
+      const db = await openImageDb();
+      return new Promise((resolve,reject) => {
+        const tx = db.transaction(IMAGE_STORE, "readonly");
+        const req = tx.objectStore(IMAGE_STORE).get(id);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function imageDelete(id) {
+      const db = await openImageDb();
+      return new Promise((resolve,reject) => {
+        const tx = db.transaction(IMAGE_STORE, "readwrite");
+        tx.objectStore(IMAGE_STORE).delete(id);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    function compressImage(file) {
+      return new Promise((resolve,reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            let w = img.width, h = img.height, max = 900;
+            if (w > h && w > max) { h = Math.round(h * max / w); w = max; }
+            else if (h > max) { w = Math.round(w * max / h); h = max; }
+            const canvas = document.createElement("canvas");
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", .75));
+          };
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function showPreview(data) {
+      const box = document.getElementById("machine-image-preview");
+      box.innerHTML = data ? `<img src="${data}" alt="Maskinbillede">` : "Intet billede valgt";
+    }
+
+    async function renderMachines() {
+      const list = document.getElementById("machines-list");
+      list.innerHTML = "";
+      for (const machine of getMachines()) {
+        const image = await imageGet(machine.id).catch(() => null);
+        const card = document.createElement("div");
+        card.className = "machine-card";
+
+        const thumb = document.createElement("div");
+        thumb.className = "machine-thumb";
+        thumb.innerHTML = image ? `<img src="${image}" alt="${machine.name}">` : "Intet<br>billede";
+
+        const info = document.createElement("div");
+        info.innerHTML = `<div style="font-weight:800;font-size:1.08rem;">${machine.name}</div>
+          <div style="color:#6b7280;margin-top:3px;">${machine.group || "Andet"}</div>
+          <div style="color:#6b7280;margin-top:3px;">${machine.weight} kg · ${machine.reps} reps · ${machine.sets} sæt</div>`;
+
+        const edit = document.createElement("button");
+        edit.className = "small-button";
+        edit.textContent = "Redigér";
+        edit.addEventListener("click", () => openMachineForm(machine.id));
+
+        card.append(thumb, info, edit);
+        list.appendChild(card);
+      }
+    }
+
+    async function openMachineForm(id=null) {
+      editingMachineId = id;
+      selectedImageData = null;
+      document.getElementById("machine-camera-input").value = "";
+      document.getElementById("machine-gallery-input").value = "";
+      const deleteBtn = document.getElementById("delete-machine-button");
+
+      if (!id) {
+        document.getElementById("machine-form-title").textContent = "Tilføj maskine";
+        deleteBtn.classList.add("hidden");
+        document.getElementById("machine-name-input").value = "";
+        document.getElementById("machine-group-input").value = "Andet";
+        document.getElementById("machine-weight-input").value = "20";
+        document.getElementById("machine-reps-input").value = "10";
+        document.getElementById("machine-sets-input").value = "3";
+        showPreview(null);
+      } else {
+        const m = getMachines().find(x => x.id === id);
+        if (!m) return;
+        document.getElementById("machine-form-title").textContent = "Redigér maskine";
+        deleteBtn.classList.remove("hidden");
+        document.getElementById("machine-name-input").value = m.name;
+        document.getElementById("machine-group-input").value = m.group || "Andet";
+        document.getElementById("machine-weight-input").value = m.weight;
+        document.getElementById("machine-reps-input").value = m.reps;
+        document.getElementById("machine-sets-input").value = m.sets;
+        showPreview(await imageGet(id).catch(() => null));
+      }
+      showScreen("addMachine");
+    }
+
+    async function handleMachineImage(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      selectedImageData = await compressImage(file).catch(() => null);
+      if (selectedImageData) {
+        showPreview(selectedImageData);
+      } else {
+        alert("Billedet kunne ikke indlæses.");
+      }
+    }
+
+    document.getElementById("machine-camera-input").addEventListener("change", handleMachineImage);
+    document.getElementById("machine-gallery-input").addEventListener("change", handleMachineImage);
+
+    document.getElementById("machines-button").addEventListener("click", async () => {
+      await renderMachines();
+      showScreen("machines");
+    });
+
+    document.getElementById("machines-back").addEventListener("click", () => showScreen("home"));
+    document.getElementById("add-machine-button").addEventListener("click", () => openMachineForm());
+
+    document.getElementById("add-machine-back").addEventListener("click", () => history.back());
+
+    document.getElementById("save-machine-button").addEventListener("click", async () => {
+      const name = document.getElementById("machine-name-input").value.trim();
+      if (!name) { alert("Skriv et navn på maskinen."); return; }
+
+      const group = document.getElementById("machine-group-input").value || "Andet";
+      const weight = parseFloat(document.getElementById("machine-weight-input").value) || 0;
+      const reps = parseInt(document.getElementById("machine-reps-input").value,10) || 10;
+      const sets = parseInt(document.getElementById("machine-sets-input").value,10) || 3;
+      const machines = getMachines();
+
+      if (editingMachineId) {
+        const m = machines.find(x => x.id === editingMachineId);
+        Object.assign(m, {name, group, weight, reps, sets});
+      } else {
+        editingMachineId = makeId();
+        machines.push({id:editingMachineId, name, group, weight, reps, sets});
+      }
+
+      saveMachines(machines);
+      if (selectedImageData) await imagePut(editingMachineId, selectedImageData);
+      await renderMachines();
+      showScreen("machines");
+    });
+
+    document.getElementById("delete-machine-button").addEventListener("click", async () => {
+      if (!editingMachineId || !confirm("Vil du slette denne maskine?")) return;
+      saveMachines(getMachines().filter(m => m.id !== editingMachineId));
+      await imageDelete(editingMachineId).catch(() => {});
+      editingMachineId = null;
+      await renderMachines();
+      showScreen("machines");
+    });
+
+    const HISTORY_KEY = "motionAppHistoryV1";
+
+    function getHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCompletedTraining() {
+      const history = getHistory();
+      const entry = {
+        date: new Date().toISOString(),
+        program: activeProgram?.name || "Program",
+        machines: activeExercises.length,
+        sets: workoutSetLog.map(row => ({ ...row }))
+      };
+      history.unshift(entry);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function getPreviousMachinePerformance(history, currentEntryIndex, machineName) {
+      for (let i = currentEntryIndex + 1; i < history.length; i += 1) {
+        const entry = history[i];
+        if (!Array.isArray(entry.sets)) continue;
+
+        const rows = entry.sets.filter(row => row.machineName === machineName);
+        if (rows.length) {
+          return rows;
+        }
+      }
+      return null;
+    }
+
+    function maxWeight(rows) {
+      if (!Array.isArray(rows) || !rows.length) return null;
+      return Math.max(...rows.map(row => Number(row.weight) || 0));
+    }
+
+    function buildProgressText(currentRows, previousRows) {
+      if (!previousRows || !previousRows.length) {
+        return { text: "Første registrerede træning", cls: "progress-same" };
+      }
+
+      const currentMax = maxWeight(currentRows);
+      const previousMax = maxWeight(previousRows);
+
+      if (currentMax > previousMax) {
+        return {
+          text: `↑ ${currentMax - previousMax} kg mere end sidst`,
+          cls: "progress-up"
+        };
+      }
+
+      if (currentMax < previousMax) {
+        return {
+          text: `↓ ${previousMax - currentMax} kg mindre end sidst`,
+          cls: "progress-down"
+        };
+      }
+
+      return {
+        text: `= Samme højeste vægt som sidst (${currentMax} kg)`,
+        cls: "progress-same"
+      };
+    }
+
+    function renderHistory() {
+      const list = document.getElementById("history-list");
+      const history = getHistory();
+      list.innerHTML = "";
+
+      if (history.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "exercise-card";
+        empty.textContent = "Ingen gennemførte træninger endnu.";
+        list.appendChild(empty);
+        return;
+      }
+
+      history.forEach((entry, entryIndex) => {
+        const card = document.createElement("div");
+        card.className = "history-card";
+
+        const date = new Date(entry.date).toLocaleDateString("da-DK", {
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        });
+
+        const summary = document.createElement("button");
+        summary.type = "button";
+        summary.className = "history-summary";
+        summary.setAttribute("aria-expanded", "false");
+
+        const main = document.createElement("div");
+        main.className = "history-summary-main";
+        main.innerHTML = `
+          <div class="history-summary-date">${date}</div>
+          <div class="history-summary-program">${entry.program}</div>
+          <div class="history-summary-count">${entry.machines} maskiner</div>
+        `;
+
+        const chevron = document.createElement("div");
+        chevron.className = "history-chevron";
+        chevron.textContent = "⌄";
+
+        summary.append(main, chevron);
+
+        const detailsBox = document.createElement("div");
+        detailsBox.className = "history-details";
+
+        let details = "";
+
+        if (Array.isArray(entry.sets) && entry.sets.length) {
+          const grouped = {};
+
+          entry.sets.forEach(row => {
+            if (!grouped[row.machineName]) grouped[row.machineName] = [];
+            grouped[row.machineName].push(row);
+          });
+
+          details = Object.entries(grouped).map(([name, rows]) => {
+            const setText = rows.map(row => `${row.weight} kg × ${row.reps}`).join(" · ");
+            const previousRows = getPreviousMachinePerformance(history, entryIndex, name);
+            const progress = buildProgressText(rows, previousRows);
+
+            let previousText = "";
+            if (previousRows && previousRows.length) {
+              const previousMax = maxWeight(previousRows);
+              previousText = `<div style="color:#6b7280;margin-top:4px;">Sidst: maks. ${previousMax} kg</div>`;
+            }
+
+            return `
+              <div class="history-machine">
+                <strong>${name}</strong><br>
+                <span style="color:#6b7280;">${setText}</span>
+                ${previousText}
+                <div class="${progress.cls}">${progress.text}</div>
+              </div>
+            `;
+          }).join("");
+        } else {
+          details = `<div style="color:#6b7280;padding-top:4px;">Ingen sæt-detaljer gemt for denne træning.</div>`;
+        }
+
+        detailsBox.innerHTML = details;
+
+        summary.addEventListener("click", () => {
+          const isOpen = card.classList.toggle("open");
+          summary.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+
+        card.append(summary, detailsBox);
+        list.appendChild(card);
+      });
+    }
+
+    document.getElementById("history-button").addEventListener("click", () => {
+      renderHistory();
+      showScreen("history");
+    });
+
+    document.getElementById("history-back").addEventListener("click", () => history.back());
+
+
+    let wakeLockSentinel = null;
+
+    async function applyWakeLock() {
+      const settings = getSettings();
+      const status = document.getElementById("wake-status");
+      const toggle = document.getElementById("wake-lock-toggle");
+
+      if (!settings.wakeLock) {
+        if (wakeLockSentinel) {
+          try { await wakeLockSentinel.release(); } catch {}
+          wakeLockSentinel = null;
+        }
+        status.textContent = "Fra";
+        return;
+      }
+
+      if (!window.isSecureContext) {
+        settings.wakeLock = false;
+        saveSettings(settings);
+        toggle.checked = false;
+        status.textContent = "Kræver HTTPS / installeret app";
+        return;
+      }
+
+      if (!("wakeLock" in navigator)) {
+        settings.wakeLock = false;
+        saveSettings(settings);
+        toggle.checked = false;
+        status.textContent = "Ikke understøttet på denne enhed/browser";
+        return;
+      }
+
+      try {
+        wakeLockSentinel = await navigator.wakeLock.request("screen");
+        status.textContent = "Til";
+        wakeLockSentinel.addEventListener("release", () => {
+          wakeLockSentinel = null;
+          if (getSettings().wakeLock && document.visibilityState === "visible") {
+            status.textContent = "Midlertidigt afbrudt";
+          }
+        });
+      } catch {
+        settings.wakeLock = false;
+        saveSettings(settings);
+        toggle.checked = false;
+        status.textContent = "Kunne ikke aktiveres";
+      }
+    }
+
+    function renderSettings() {
+      const settings = getSettings();
+      document.getElementById("wake-lock-toggle").checked = !!settings.wakeLock;
+      document.getElementById("rest-seconds-input").value = settings.restSeconds || 60;
+      document.getElementById("wake-status").textContent = settings.wakeLock ? "Til" : "Fra";
+    }
+
+    document.getElementById("settings-button").addEventListener("click", async () => {
+      renderSettings();
+      showScreen("settings");
+      await applyWakeLock();
+    });
+
+    document.getElementById("settings-back").addEventListener("click", () => history.back());
+
+    document.getElementById("wake-lock-toggle").addEventListener("change", async event => {
+      const settings = getSettings();
+      settings.wakeLock = event.target.checked;
+      saveSettings(settings);
+      await applyWakeLock();
+    });
+
+    document.getElementById("rest-seconds-input").addEventListener("change", event => {
+      let value = Number(event.target.value) || 60;
+      value = Math.max(15, Math.min(300, Math.round(value)));
+      event.target.value = value;
+      const settings = getSettings();
+      settings.restSeconds = value;
+      saveSettings(settings);
+    });
+
+    document.addEventListener("visibilitychange", async () => {
+      if (document.visibilityState === "visible" && getSettings().wakeLock) {
+        await applyWakeLock();
+      }
+    });
+
+    async function getAllMachineImages() {
+      const db = await openImageDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(IMAGE_STORE, "readonly");
+        const store = tx.objectStore(IMAGE_STORE);
+        const req = store.openCursor();
+        const images = {};
+        req.onsuccess = () => {
+          const cursor = req.result;
+          if (cursor) {
+            images[cursor.key] = cursor.value;
+            cursor.continue();
+          } else {
+            resolve(images);
+          }
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function clearMachineImages() {
+      const db = await openImageDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(IMAGE_STORE, "readwrite");
+        tx.objectStore(IMAGE_STORE).clear();
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function exportBackup() {
+      const backup = {
+        version: 1,
+        createdAt: new Date().toISOString(),
+        machines: getMachines(),
+        programs: getPrograms(),
+        history: getHistory(),
+        settings: getSettings(),
+        images: await getAllMachineImages().catch(() => ({}))
+      };
+
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const date = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `motion-backup-${date}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function restoreBackup(file) {
+      const text = await file.text();
+      const backup = JSON.parse(text);
+
+      if (!backup || !Array.isArray(backup.machines) || !Array.isArray(backup.programs)) {
+        throw new Error("Ugyldig backup");
+      }
+
+      localStorage.setItem(MACHINES_KEY, JSON.stringify(backup.machines));
+      localStorage.setItem(PROGRAMS_KEY, JSON.stringify(backup.programs));
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(Array.isArray(backup.history) ? backup.history : []));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(backup.settings || { wakeLock: false, restSeconds: 60 }));
+
+      await clearMachineImages().catch(() => {});
+      if (backup.images && typeof backup.images === "object") {
+        for (const [id, data] of Object.entries(backup.images)) {
+          if (typeof data === "string") {
+            await imagePut(id, data).catch(() => {});
+          }
+        }
+      }
+    }
+
+    document.getElementById("export-backup-button").addEventListener("click", async () => {
+      try {
+        await exportBackup();
+      } catch {
+        alert("Backup kunne ikke oprettes.");
+      }
+    });
+
+    document.getElementById("restore-backup-button").addEventListener("click", () => {
+      document.getElementById("restore-backup-input").click();
+    });
+
+    document.getElementById("restore-backup-input").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!confirm("Vil du erstatte appens nuværende data med denne backup?")) {
+        event.target.value = "";
+        return;
+      }
+
+      try {
+        await restoreBackup(file);
+        renderSettings();
+        alert("Backup er gendannet.");
+      } catch {
+        alert("Backup-filen kunne ikke gendannes.");
+      }
+
+      event.target.value = "";
+    });
+
+    // Apply saved wake-lock preference on launch when possible.
+    if (getSettings().wakeLock) {
+      applyWakeLock();
+    }
+
+
+    let deferredInstallPrompt = null;
+
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+
+      const button = document.getElementById("install-app-button");
+      const help = document.getElementById("install-app-help");
+      button.classList.remove("hidden");
+      help.textContent = "Appen er klar til installation.";
+    });
+
+    document.getElementById("install-app-button").addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+
+      document.getElementById("install-app-button").classList.add("hidden");
+    });
+
+    window.addEventListener("appinstalled", () => {
+      document.getElementById("install-app-button").classList.add("hidden");
+      document.getElementById("install-app-help").textContent = "Appen er installeret.";
+    });
+
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
