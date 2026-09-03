@@ -623,7 +623,7 @@
         </button>
       </section>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
     <section id="program-screen" class="screen">
@@ -636,7 +636,7 @@
 
       <section class="menu" id="start-program-list"></section>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
     <section id="programs-screen" class="screen">
@@ -655,7 +655,7 @@
         <button class="action-button secondary" id="open-program-import" type="button">Importer program fra ChatGPT</button>
       </div>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
 
@@ -682,7 +682,7 @@
         </button>
       </section>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
     <section id="program-edit-screen" class="screen">
@@ -713,7 +713,7 @@
         <button class="action-button danger hidden" id="delete-program-button" type="button">Slet program</button>
       </section>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
     <section id="training-screen" class="screen">
@@ -780,7 +780,7 @@
 
       <button class="action-button danger" id="cancel-training" type="button">Afbryd træning</button>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
 
@@ -834,9 +834,19 @@
           <input class="hidden" id="restore-backup-input" type="file" accept="application/json,.json">
           <div class="setting-help">Gemmer maskiner, billeder, programmer, historik og indstillinger.</div>
         </div>
+
+        <div class="setting-row">
+          <label>Nulstil app</label>
+          <button class="action-button danger" id="reset-all-button" type="button" style="width:100%;margin-top:0;">
+            Nulstil alle data
+          </button>
+          <div class="setting-help">
+            Sletter maskiner, billeder, programmer, historik og indstillinger.
+          </div>
+        </div>
       </section>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
     <section id="machines-screen" class="screen">
@@ -853,7 +863,7 @@
         <button class="action-button primary" id="add-machine-button" type="button">+ Tilføj maskine</button>
       </div>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
     <section id="add-machine-screen" class="screen">
@@ -915,7 +925,7 @@
         <button class="action-button danger hidden" id="delete-machine-button" type="button">Slet maskine</button>
       </section>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
     <section id="history-screen" class="screen">
@@ -928,7 +938,7 @@
 
       <section class="menu" id="history-list"></section>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
     <section id="complete-screen" class="screen">
@@ -954,7 +964,7 @@
         </div>
       </section>
 
-      <footer>Prototype v2.3</footer>
+      <footer>Min Træning · v1.0</footer>
     </section>
 
   </main>
@@ -1290,24 +1300,6 @@
       }
 
       if (!Array.isArray(programs)) programs = [];
-
-      // First-run default.
-      if (programs.length === 0) {
-        const machines = getMachines();
-        if (machines.length) {
-          programs = [{
-            id: "p_" + Date.now(),
-            name: "Helkrop A",
-            exercises: machines.slice(0, 2).map(machine => ({
-              machineId: machine.id,
-              weight: Number(machine.weight) || 0,
-              reps: Number(machine.reps) || 10,
-              sets: Number(machine.sets) || 3
-            }))
-          }];
-          changed = true;
-        }
-      }
 
       programs = programs.map(program => {
         const exercises = Array.isArray(program.exercises)
@@ -1792,11 +1784,8 @@ ${machineLines}`;
     function getMachines() {
       let machines = [];
       try { machines = JSON.parse(localStorage.getItem(MACHINES_KEY) || "[]"); } catch {}
-      if (!Array.isArray(machines) || machines.length === 0) {
-        machines = [
-          {id: makeId(), name:"Benpres", group:"Ben", weight:50, reps:10, sets:3},
-          {id: makeId(), name:"Lat Pulldown", group:"Ryg", weight:35, reps:10, sets:3}
-        ];
+      if (!Array.isArray(machines)) {
+        machines = [];
       }
       let changed = false;
       machines.forEach(m => {
@@ -2285,6 +2274,7 @@ ${machineLines}`;
     async function exportBackup() {
       const backup = {
         version: 1,
+        appVersion: "1.0",
         createdAt: new Date().toISOString(),
         machines: getMachines(),
         programs: getPrograms(),
@@ -2327,6 +2317,37 @@ ${machineLines}`;
         }
       }
     }
+
+    async function resetAllData() {
+      const first = confirm(
+        "Vil du nulstille hele appen?\n\nMaskiner, billeder, programmer, historik og indstillinger bliver slettet."
+      );
+      if (!first) return;
+
+      const second = confirm(
+        "SIDSTE ADVARSEL\n\nDette kan ikke fortrydes, medmindre du har en backup.\n\nFortsæt med at slette alt?"
+      );
+      if (!second) return;
+
+      if (wakeLockSentinel) {
+        try { await wakeLockSentinel.release(); } catch {}
+        wakeLockSentinel = null;
+      }
+
+      localStorage.setItem(MACHINES_KEY, "[]");
+      localStorage.setItem(PROGRAMS_KEY, "[]");
+      localStorage.setItem(HISTORY_KEY, "[]");
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ wakeLock: false, restSeconds: 60 }));
+      localStorage.removeItem("motionAppProgramsV1");
+
+      await clearMachineImages().catch(() => {});
+
+      alert("Alle appdata er nulstillet.");
+      history.replaceState({ screen: "home" }, "", "");
+      location.reload();
+    }
+
+    document.getElementById("reset-all-button").addEventListener("click", resetAllData);
 
     document.getElementById("export-backup-button").addEventListener("click", async () => {
       try {
@@ -2393,8 +2414,18 @@ ${machineLines}`;
     });
 
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      window.addEventListener("load", async () => {
+        try {
+          const registration = await navigator.serviceWorker.register("./sw.js");
+          registration.update();
+
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+          });
+        } catch {}
       });
     }
   </script>

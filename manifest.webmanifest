@@ -1,7 +1,7 @@
 {
   "name": "Min Træning",
   "short_name": "Træning",
-  "description": "Lokal motionsapp til maskiner, programmer, historik og træning.",
+  "description": "Motionsapp til maskiner, programmer, træningshistorik og fremgang.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

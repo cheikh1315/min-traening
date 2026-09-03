@@ -1,16 +1,24 @@
-MIN TRÆNING v2.3
+MIN TRÆNING v1.0
 
-Denne mappe er nu en komplet PWA.
-
-Vigtigt:
-- Den kan ikke installeres korrekt direkte fra content://downloads/ eller file://
-- Den skal ligge på HTTPS (eller localhost under udvikling)
-- Når den ligger på HTTPS, kan Android/Chrome installere den som app
-- Wake Lock kan derefter bruges, hvis browser/enhed understøtter det
-
-Filer:
+UPLOAD TIL GITHUB
+Erstat disse filer i roden af repository min-traening:
 - index.html
 - manifest.webmanifest
 - sw.js
 - icon-192.png
 - icon-512.png
+
+Når ændringerne er committed til main, publicerer GitHub Pages dem på den samme adresse.
+
+OPDATERINGER
+Den installerede app kontrollerer efter en nyere service worker ved opstart.
+Når mobilen er online, hentes den nye version. Offline bruges den senest gemte version.
+Dine lokale appdata bliver normalt bevaret ved opdatering.
+
+NULSTIL
+Indstillinger -> Nulstil alle data kræver to bekræftelser.
+Efter nulstilling starter appen tom uden testmaskiner eller testprogrammer.
+
+BACKUP
+Tag gerne en backup før større ændringer:
+Indstillinger -> Eksporter backup
