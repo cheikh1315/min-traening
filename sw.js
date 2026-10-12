@@ -1,4 +1,4 @@
-const CACHE_NAME = "min-traening-v1.1";
+const CACHE_NAME = "min-traening-v1.2";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -8,9 +8,7 @@ const APP_FILES = [
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)));
   self.skipWaiting();
 });
 
@@ -50,7 +48,6 @@ self.addEventListener("fetch", event => {
           return response;
         })
         .catch(() => cached);
-
       return cached || network;
     })
   );

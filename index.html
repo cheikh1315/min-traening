@@ -588,6 +588,39 @@
       display: block;
     }
 
+    .cardio-panel {
+      display: none;
+      background: #f9fafb;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .cardio-panel.active { display: block; }
+
+    .cardio-target {
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .cardio-time {
+      font-size: 3rem;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: .02em;
+      margin: 10px 0 16px;
+    }
+
+    .cardio-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .hidden-force { display: none !important; }
+
     footer {
       color: var(--muted);
       text-align: center;
@@ -623,7 +656,7 @@
         </button>
       </section>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
     <section id="program-screen" class="screen">
@@ -636,7 +669,7 @@
 
       <section class="menu" id="start-program-list"></section>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
     <section id="programs-screen" class="screen">
@@ -655,7 +688,7 @@
         <button class="action-button secondary" id="open-program-import" type="button">Importer program fra ChatGPT</button>
       </div>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
 
@@ -682,7 +715,7 @@
         </button>
       </section>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
     <section id="program-edit-screen" class="screen">
@@ -713,7 +746,7 @@
         <button class="action-button danger hidden" id="delete-program-button" type="button">Slet program</button>
       </section>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
     <section id="training-screen" class="screen">
@@ -734,7 +767,7 @@
           <div class="last-time-text" id="last-time-text">Ingen tidligere træning registreret.</div>
         </div>
 
-        <div class="values">
+        <div class="values" id="strength-values">
           <div class="adjust-row">
             <span class="value-label">Vægt</span>
             <div class="adjust-controls">
@@ -756,6 +789,19 @@
           <div class="set-row">
             <span class="value-label" style="margin:0;">Sæt</span>
             <span class="value-number" id="set-display">1 / 3</span>
+          </div>
+        </div>
+
+        <div class="cardio-panel" id="cardio-panel">
+          <div class="cardio-target" id="cardio-target">Mål: 10 min</div>
+          <div class="cardio-time" id="cardio-time">10:00</div>
+          <div class="cardio-controls">
+            <button class="action-button primary" id="cardio-start-pause" type="button">Start</button>
+            <button class="action-button secondary" id="cardio-reset" type="button">Nulstil</button>
+          </div>
+          <div class="cardio-controls" style="margin-top:10px;">
+            <button class="action-button secondary" id="cardio-minus-minute" type="button">− 1 min</button>
+            <button class="action-button secondary" id="cardio-plus-minute" type="button">+ 1 min</button>
           </div>
         </div>
 
@@ -782,7 +828,7 @@
 
       <button class="action-button danger" id="cancel-training" type="button">Afbryd træning</button>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
 
@@ -848,7 +894,7 @@
         </div>
       </section>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
     <section id="machines-screen" class="screen">
@@ -865,7 +911,7 @@
         <button class="action-button primary" id="add-machine-button" type="button">+ Tilføj maskine</button>
       </div>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
     <section id="add-machine-screen" class="screen">
@@ -909,25 +955,40 @@
         </div>
 
         <div class="field">
-          <label for="machine-weight-input">Standardvægt (kg)</label>
-          <input id="machine-weight-input" type="number" inputmode="decimal" min="0" step="0.5" value="20">
+          <label for="machine-type-input">Type</label>
+          <select id="machine-type-input">
+            <option value="strength">Styrke</option>
+            <option value="cardio">Kondition / tid</option>
+          </select>
         </div>
 
-        <div class="field">
-          <label for="machine-reps-input">Standard gentagelser</label>
-          <input id="machine-reps-input" type="number" inputmode="numeric" min="1" step="1" value="10">
+        <div id="machine-strength-fields">
+          <div class="field">
+            <label for="machine-weight-input">Standardvægt (kg)</label>
+            <input id="machine-weight-input" type="number" inputmode="decimal" min="0" step="0.5" value="20">
+          </div>
+
+          <div class="field">
+            <label for="machine-reps-input">Standard gentagelser</label>
+            <input id="machine-reps-input" type="number" inputmode="numeric" min="1" step="1" value="10">
+          </div>
+
+          <div class="field">
+            <label for="machine-sets-input">Standard sæt</label>
+            <input id="machine-sets-input" type="number" inputmode="numeric" min="1" step="1" value="3">
+          </div>
         </div>
 
-        <div class="field">
-          <label for="machine-sets-input">Standard sæt</label>
-          <input id="machine-sets-input" type="number" inputmode="numeric" min="1" step="1" value="3">
+        <div class="field hidden-force" id="machine-cardio-fields">
+          <label for="machine-minutes-input">Standard tid (minutter)</label>
+          <input id="machine-minutes-input" type="number" inputmode="numeric" min="1" max="180" step="1" value="10">
         </div>
 
         <button class="action-button primary" id="save-machine-button" type="button" style="width:100%;">Gem maskine</button>
         <button class="action-button danger hidden" id="delete-machine-button" type="button">Slet maskine</button>
       </section>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
     <section id="history-screen" class="screen">
@@ -940,7 +1001,7 @@
 
       <section class="menu" id="history-list"></section>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
     <section id="complete-screen" class="screen">
@@ -974,7 +1035,7 @@
         </div>
       </section>
 
-      <footer>Min Træning · v1.1</footer>
+      <footer>Min Træning · v1.2</footer>
     </section>
 
   </main>
@@ -1070,10 +1131,23 @@
     const nextMachineButton = document.getElementById("next-machine");
     const skipMachineButton = document.getElementById("skip-machine");
     const machineCompleteTitle = document.getElementById("machine-complete-title");
+    const strengthValues = document.getElementById("strength-values");
+    const cardioPanel = document.getElementById("cardio-panel");
+    const cardioTarget = document.getElementById("cardio-target");
+    const cardioTime = document.getElementById("cardio-time");
+    const cardioStartPause = document.getElementById("cardio-start-pause");
+    const cardioReset = document.getElementById("cardio-reset");
+    const cardioMinusMinute = document.getElementById("cardio-minus-minute");
+    const cardioPlusMinute = document.getElementById("cardio-plus-minute");
     let restSeconds = 60;
     let restTimer = null;
     let machineFinished = false;
     let workoutSetLog = [];
+
+    let cardioTimer = null;
+    let cardioTargetSeconds = 0;
+    let cardioRemainingSeconds = 0;
+    let cardioRunning = false;
 
     function updateSetDisplay() {
       setDisplay.textContent = `${currentSet} / ${totalSets}`;
@@ -1098,6 +1172,79 @@
       }, 1000);
     }
 
+    function isCardioExercise(exercise) {
+      return exercise?.type === "cardio";
+    }
+
+    function formatClock(totalSeconds) {
+      const sec = Math.max(0, Math.round(Number(totalSeconds) || 0));
+      const minutes = Math.floor(sec / 60);
+      const seconds = sec % 60;
+      return `${minutes}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function stopCardioTimer() {
+      if (cardioTimer) clearInterval(cardioTimer);
+      cardioTimer = null;
+      cardioRunning = false;
+      cardioStartPause.textContent = cardioRemainingSeconds > 0 && cardioRemainingSeconds < cardioTargetSeconds
+        ? "Fortsæt"
+        : "Start";
+    }
+
+    function updateCardioDisplay() {
+      cardioTime.textContent = formatClock(cardioRemainingSeconds);
+      const targetMinutes = Math.max(1, Math.round(cardioTargetSeconds / 60));
+      cardioTarget.textContent = `Mål: ${targetMinutes} min`;
+    }
+
+    function resetCardioTimer() {
+      stopCardioTimer();
+      cardioRemainingSeconds = cardioTargetSeconds;
+      updateCardioDisplay();
+    }
+
+    function startOrPauseCardioTimer() {
+      if (machineFinished) return;
+
+      if (cardioRunning) {
+        stopCardioTimer();
+        return;
+      }
+
+      if (cardioRemainingSeconds <= 0) {
+        cardioRemainingSeconds = cardioTargetSeconds;
+      }
+
+      cardioRunning = true;
+      cardioStartPause.textContent = "Pause";
+      cardioTimer = setInterval(() => {
+        cardioRemainingSeconds = Math.max(0, cardioRemainingSeconds - 1);
+        updateCardioDisplay();
+
+        if (cardioRemainingSeconds <= 0) {
+          stopCardioTimer();
+          cardioTime.textContent = "0:00";
+        }
+      }, 1000);
+    }
+
+    function adjustCardioTarget(minutesDelta) {
+      if (cardioRunning || machineFinished) return;
+      const nextMinutes = Math.max(1, Math.round(cardioTargetSeconds / 60) + minutesDelta);
+      cardioTargetSeconds = nextMinutes * 60;
+      cardioRemainingSeconds = cardioTargetSeconds;
+      const exercise = activeExercises[currentExerciseIndex];
+      if (exercise) exercise.minutes = nextMinutes;
+      updateCardioDisplay();
+    }
+
+    function cardioElapsedMinutes() {
+      if (cardioTargetSeconds <= 0) return 0;
+      const elapsedSeconds = Math.max(0, cardioTargetSeconds - cardioRemainingSeconds);
+      return Math.round((elapsedSeconds / 60) * 10) / 10;
+    }
+
     function getCurrentExerciseLog() {
       if (!activeExercises[currentExerciseIndex]) return [];
       const id = activeExercises[currentExerciseIndex].id;
@@ -1119,8 +1266,13 @@
 
         if (row.status === "skipped") {
           div.innerHTML = `
-            <span class="value-label" style="margin:0;">Sæt ${setNo}</span>
+            <span class="value-label" style="margin:0;">${row.kind === "cardio" ? "Tid" : `Sæt ${setNo}`}</span>
             <span class="value-number">Sprunget over</span>
+          `;
+        } else if (row.kind === "cardio") {
+          div.innerHTML = `
+            <span class="value-label" style="margin:0;">Tid</span>
+            <span class="value-number">${row.minutes} min</span>
           `;
         } else {
           div.innerHTML = `
@@ -1159,23 +1311,27 @@
     }
 
     function renderLastTime(exercise) {
-      const previous = getLastCompletedSetsForExercise(exercise);
+      const last = getLastCompletedSetsForExercise(exercise);
 
-      if (!previous) {
+      if (!last) {
         lastTimeText.textContent = "Ingen tidligere træning registreret.";
         return;
       }
 
-      const setText = previous.rows
-        .map(row => `${row.weight} kg × ${row.reps}`)
-        .join(" · ");
-
-      const date = new Date(previous.date).toLocaleDateString("da-DK", {
+      const date = new Date(last.date).toLocaleDateString("da-DK", {
         day: "numeric",
         month: "short"
       });
 
-      lastTimeText.textContent = `${date}: ${setText}`;
+      const cardioRows = last.rows.filter(row => row.kind === "cardio");
+      if (isCardioExercise(exercise) || cardioRows.length) {
+        const mins = cardioRows.map(row => Number(row.minutes) || 0).join(" · ");
+        lastTimeText.textContent = mins ? `${date}: ${mins} min` : `${date}: registreret`;
+        return;
+      }
+
+      const sets = last.rows.map(row => `${row.weight} kg × ${row.reps}`).join(" · ");
+      lastTimeText.textContent = `${date}: ${sets}`;
     }
 
     async function renderTrainingImage(machineId) {
@@ -1191,12 +1347,25 @@
       const exercise = activeExercises[currentExerciseIndex];
       if (!exercise) return;
 
-      if (status === "skipped") {
+      if (isCardioExercise(exercise)) {
+        workoutSetLog.push({
+          machineId: exercise.id,
+          machineName: exercise.name,
+          setNumber: 1,
+          status,
+          kind: "cardio",
+          minutes: status === "completed"
+            ? (cardioElapsedMinutes() > 0 ? cardioElapsedMinutes() : Number(exercise.minutes) || 10)
+            : 0,
+          targetMinutes: Number(exercise.minutes) || 10
+        });
+      } else if (status === "skipped") {
         workoutSetLog.push({
           machineId: exercise.id,
           machineName: exercise.name,
           setNumber,
-          status: "skipped"
+          status: "skipped",
+          kind: "strength"
         });
       } else {
         workoutSetLog.push({
@@ -1204,6 +1373,7 @@
           machineName: exercise.name,
           setNumber,
           status: "completed",
+          kind: "strength",
           weight: Number(weightInput.value) || 0,
           reps: Number(repsInput.value) || 0
         });
@@ -1215,16 +1385,17 @@
     function loadExercise(index) {
       currentExerciseIndex = index;
       const exercise = activeExercises[currentExerciseIndex];
-      totalSets = Number(exercise.sets) || 3;
+      const cardio = isCardioExercise(exercise);
+      totalSets = cardio ? 1 : (Number(exercise.sets) || 3);
 
       stopRestTimer();
+      stopCardioTimer();
       machineComplete.classList.remove("active");
       machineCompleteTitle.textContent = "Maskine afsluttet";
       machineFinished = false;
       finishSetButton.disabled = false;
-      skipSetButton.disabled = false;
+      skipSetButton.disabled = cardio;
       skipMachineButton.disabled = false;
-      finishSetButton.textContent = "Færdig med sæt";
       nextMachineButton.classList.remove("primary");
       nextMachineButton.classList.add("secondary");
       nextMachineButton.textContent = currentExerciseIndex === activeExercises.length - 1
@@ -1233,10 +1404,28 @@
 
       exerciseTitle.textContent = exercise.name;
       machineNumber.textContent = `Maskine ${currentExerciseIndex + 1}`;
-      weightInput.value = exercise.weight;
-      repsInput.value = exercise.reps;
-      currentSet = 1;
-      updateSetDisplay();
+
+      if (cardio) {
+        strengthValues.classList.add("hidden-force");
+        cardioPanel.classList.add("active");
+        skipSetButton.classList.add("hidden-force");
+        finishSetButton.textContent = "Færdig med tid";
+
+        cardioTargetSeconds = Math.max(1, Number(exercise.minutes) || 10) * 60;
+        cardioRemainingSeconds = cardioTargetSeconds;
+        updateCardioDisplay();
+      } else {
+        strengthValues.classList.remove("hidden-force");
+        cardioPanel.classList.remove("active");
+        skipSetButton.classList.remove("hidden-force");
+        finishSetButton.textContent = "Færdig med sæt";
+
+        weightInput.value = exercise.weight;
+        repsInput.value = exercise.reps;
+        currentSet = 1;
+        updateSetDisplay();
+      }
+
       renderCompletedSets();
       renderLastTime(exercise);
       renderTrainingImage(exercise.id);
@@ -1254,6 +1443,7 @@
 
     function closeCurrentMachine(message = "Maskine afsluttet") {
       stopRestTimer();
+      stopCardioTimer();
       machineFinished = true;
       machineCompleteTitle.textContent = message;
       machineComplete.classList.add("active");
@@ -1271,7 +1461,7 @@
       let skipped = 0;
 
       activeExercises.forEach(exercise => {
-        const plannedSets = Math.max(1, Number(exercise.sets) || 3);
+        const plannedSets = isCardioExercise(exercise) ? 1 : Math.max(1, Number(exercise.sets) || 3);
         const rows = workoutSetLog.filter(row => row.machineId === exercise.id);
         const completedSets = rows.filter(isCompletedSet).length;
         const skippedSets = rows.filter(row => row.status === "skipped").length;
@@ -1312,8 +1502,21 @@
     document.getElementById("reps-minus").addEventListener("click", () => changeNumber(repsInput, -1));
     document.getElementById("reps-plus").addEventListener("click", () => changeNumber(repsInput, 1));
 
+    cardioStartPause.addEventListener("click", startOrPauseCardioTimer);
+    cardioReset.addEventListener("click", resetCardioTimer);
+    cardioMinusMinute.addEventListener("click", () => adjustCardioTarget(-1));
+    cardioPlusMinute.addEventListener("click", () => adjustCardioTarget(1));
+
     finishSetButton.addEventListener("click", () => {
       if (machineFinished) return;
+
+      const exercise = activeExercises[currentExerciseIndex];
+      if (isCardioExercise(exercise)) {
+        stopCardioTimer();
+        saveCurrentSetToLog("completed", 1);
+        closeCurrentMachine("Tid gennemført");
+        return;
+      }
 
       saveCurrentSetToLog("completed", currentSet);
 
@@ -1356,8 +1559,18 @@
       }
 
       stopRestTimer();
+      stopCardioTimer();
 
-      // Keep any sets already completed, and explicitly mark all remaining sets skipped.
+      const exercise = activeExercises[currentExerciseIndex];
+
+      if (isCardioExercise(exercise)) {
+        if (!getCurrentExerciseLog().length) {
+          saveCurrentSetToLog("skipped", 1);
+        }
+        goToNextMachineOrFinish();
+        return;
+      }
+
       for (let setNo = currentSet; setNo <= totalSets; setNo += 1) {
         const alreadyLogged = getCurrentExerciseLog().some(row => (row.setNumber || 0) === setNo);
         if (!alreadyLogged) {
@@ -1369,6 +1582,7 @@
     });
 
     document.getElementById("complete-home").addEventListener("click", () => {
+      stopCardioTimer();
       activeProgram = null;
       activeExercises = [];
       workoutSetLog = [];
@@ -1385,6 +1599,17 @@
     function normalizeProgramExercise(item) {
       const machine = machineById(item.machineId);
       if (!machine) return null;
+
+      if (machine.type === "cardio") {
+        const minutes = Number(item.minutes ?? item.reps ?? machine.minutes ?? machine.reps ?? 10);
+        return {
+          machineId: item.machineId,
+          minutes: Number.isFinite(minutes) && minutes >= 1 ? Math.round(minutes) : 10,
+          weight: 0,
+          reps: 1,
+          sets: 1
+        };
+      }
 
       return {
         machineId: item.machineId,
@@ -1486,9 +1711,13 @@
           return {
             id: machine.id,
             name: machine.name,
-            weight: String(programExercise.weight),
-            reps: String(programExercise.reps),
-            sets: Number(programExercise.sets) || 3
+            type: machine.type || "strength",
+            minutes: machine.type === "cardio"
+              ? Math.max(1, Number(programExercise.minutes ?? programExercise.reps ?? machine.minutes ?? 10))
+              : null,
+            weight: String(programExercise.weight ?? machine.weight ?? 0),
+            reps: String(programExercise.reps ?? machine.reps ?? 10),
+            sets: machine.type === "cardio" ? 1 : (Number(programExercise.sets) || 3)
           };
         })
         .filter(Boolean);
@@ -1559,12 +1788,22 @@
         cb.addEventListener("change", () => {
           if (cb.checked) {
             if (!selectedProgramExercises.some(ex => ex.machineId === machine.id)) {
-              selectedProgramExercises.push({
-                machineId: machine.id,
-                weight: Number(machine.weight) || 0,
-                reps: Number(machine.reps) || 10,
-                sets: Number(machine.sets) || 3
-              });
+              selectedProgramExercises.push(
+                machine.type === "cardio"
+                  ? {
+                      machineId: machine.id,
+                      minutes: Number(machine.minutes) || 10,
+                      weight: 0,
+                      reps: 1,
+                      sets: 1
+                    }
+                  : {
+                      machineId: machine.id,
+                      weight: Number(machine.weight) || 0,
+                      reps: Number(machine.reps) || 10,
+                      sets: Number(machine.sets) || 3
+                    }
+              );
             }
           } else {
             selectedProgramExercises = selectedProgramExercises.filter(ex => ex.machineId !== machine.id);
@@ -1631,11 +1870,15 @@
         const values = document.createElement("div");
         values.className = "program-values";
 
-        const fields = [
-          { key: "weight", label: "Kg", step: "0.5", min: "0" },
-          { key: "reps", label: "Reps", step: "1", min: "1" },
-          { key: "sets", label: "Sæt", step: "1", min: "1" }
-        ];
+        const fields = machine.type === "cardio"
+          ? [
+              { key: "minutes", label: "Minutter", step: "1", min: "1" }
+            ]
+          : [
+              { key: "weight", label: "Kg", step: "0.5", min: "0" },
+              { key: "reps", label: "Reps", step: "1", min: "1" },
+              { key: "sets", label: "Sæt", step: "1", min: "1" }
+            ];
 
         fields.forEach(field => {
           const wrap = document.createElement("div");
@@ -1699,22 +1942,36 @@
     function buildChatGptMachineText() {
       const machines = getMachines();
 
-      const machineLines = machines.map(machine =>
-        `- ${machine.name} | muskelgruppe: ${machine.group || "Andet"} | standard: ${machine.weight} kg, ${machine.reps} reps, ${machine.sets} sæt`
-      ).join("\n");
+      const machineLines = machines.map(machine => {
+        if (machine.type === "cardio") {
+          return `- ${machine.name} | type: Kondition | standard: ${machine.minutes || 10} minutter`;
+        }
+        return `- ${machine.name} | type: Styrke | muskelgruppe: ${machine.group || "Andet"} | standard: ${machine.weight} kg, ${machine.reps} reps, ${machine.sets} sæt`;
+      }).join("\n");
 
       return `Lav et træningsprogram til min motionsapp ud fra maskinerne nedenfor.
 
-Returnér KUN gyldig JSON i dette format:
+Returnér KUN gyldig JSON.
+
+Styrkemaskine:
+{
+  "machine": "Præcis maskinnavn",
+  "weight": 40,
+  "reps": 10,
+  "sets": 3
+}
+
+Konditionsmaskine:
+{
+  "machine": "Præcis maskinnavn",
+  "minutes": 10
+}
+
+Hele programmet:
 {
   "name": "Programnavn",
   "exercises": [
-    {
-      "machine": "Præcis maskinnavn",
-      "weight": 40,
-      "reps": 10,
-      "sets": 3
-    }
+    ...
   ]
 }
 
@@ -1776,6 +2033,20 @@ ${machineLines}`;
         const machine = normalizedNames.get(requestedName.toLocaleLowerCase("da-DK"));
         if (!machine) {
           missing.push(requestedName);
+          continue;
+        }
+
+        if (machine.type === "cardio") {
+          const minutes = Number(item.minutes ?? item.reps);
+          exercises.push({
+            machineId: machine.id,
+            minutes: Number.isFinite(minutes) && minutes >= 1
+              ? Math.round(minutes)
+              : Number(machine.minutes) || 10,
+            weight: 0,
+            reps: 1,
+            sets: 1
+          });
           continue;
         }
 
@@ -1907,11 +2178,29 @@ ${machineLines}`;
       if (!Array.isArray(machines)) {
         machines = [];
       }
+
+      const cardioNames = new Set(["cykel", "løbebånd", "crosstrainer"]);
       let changed = false;
+
       machines.forEach(m => {
         if (!m.id) { m.id = makeId(); changed = true; }
         if (!m.group) { m.group = "Andet"; changed = true; }
+
+        if (!m.type) {
+          m.type = cardioNames.has(String(m.name || "").trim().toLocaleLowerCase("da-DK"))
+            ? "cardio"
+            : "strength";
+          changed = true;
+        }
+
+        if (m.type === "cardio") {
+          if (!Number.isFinite(Number(m.minutes)) || Number(m.minutes) < 1) {
+            m.minutes = Math.max(1, Math.round(Number(m.reps) || 10));
+            changed = true;
+          }
+        }
       });
+
       if (changed || !localStorage.getItem(MACHINES_KEY)) {
         localStorage.setItem(MACHINES_KEY, JSON.stringify(machines));
       }
@@ -2005,9 +2294,11 @@ ${machineLines}`;
         thumb.innerHTML = image ? `<img src="${image}" alt="${machine.name}">` : "Intet<br>billede";
 
         const info = document.createElement("div");
+        const detail = machine.type === "cardio"
+          ? `Kondition · ${machine.minutes || 10} min`
+          : `${machine.group || "Andet"} · ${machine.weight} kg · ${machine.reps} reps · ${machine.sets} sæt`;
         info.innerHTML = `<div style="font-weight:800;font-size:1.08rem;">${machine.name}</div>
-          <div style="color:#6b7280;margin-top:3px;">${machine.group || "Andet"}</div>
-          <div style="color:#6b7280;margin-top:3px;">${machine.weight} kg · ${machine.reps} reps · ${machine.sets} sæt</div>`;
+          <div style="color:#6b7280;margin-top:3px;">${detail}</div>`;
 
         const edit = document.createElement("button");
         edit.className = "small-button";
@@ -2018,6 +2309,14 @@ ${machineLines}`;
         list.appendChild(card);
       }
     }
+
+    function updateMachineTypeFields() {
+      const type = document.getElementById("machine-type-input").value || "strength";
+      document.getElementById("machine-strength-fields").classList.toggle("hidden-force", type === "cardio");
+      document.getElementById("machine-cardio-fields").classList.toggle("hidden-force", type !== "cardio");
+    }
+
+    document.getElementById("machine-type-input").addEventListener("change", updateMachineTypeFields);
 
     async function openMachineForm(id=null) {
       editingMachineId = id;
@@ -2031,9 +2330,12 @@ ${machineLines}`;
         deleteBtn.classList.add("hidden");
         document.getElementById("machine-name-input").value = "";
         document.getElementById("machine-group-input").value = "Andet";
+        document.getElementById("machine-type-input").value = "strength";
         document.getElementById("machine-weight-input").value = "20";
         document.getElementById("machine-reps-input").value = "10";
         document.getElementById("machine-sets-input").value = "3";
+        document.getElementById("machine-minutes-input").value = "10";
+        updateMachineTypeFields();
         showPreview(null);
       } else {
         const m = getMachines().find(x => x.id === id);
@@ -2042,9 +2344,12 @@ ${machineLines}`;
         deleteBtn.classList.remove("hidden");
         document.getElementById("machine-name-input").value = m.name;
         document.getElementById("machine-group-input").value = m.group || "Andet";
+        document.getElementById("machine-type-input").value = m.type || "strength";
         document.getElementById("machine-weight-input").value = m.weight;
         document.getElementById("machine-reps-input").value = m.reps;
         document.getElementById("machine-sets-input").value = m.sets;
+        document.getElementById("machine-minutes-input").value = m.minutes || 10;
+        updateMachineTypeFields();
         showPreview(await imageGet(id).catch(() => null));
       }
       showScreen("addMachine");
@@ -2080,17 +2385,19 @@ ${machineLines}`;
       if (!name) { alert("Skriv et navn på maskinen."); return; }
 
       const group = document.getElementById("machine-group-input").value || "Andet";
+      const type = document.getElementById("machine-type-input").value || "strength";
       const weight = parseFloat(document.getElementById("machine-weight-input").value) || 0;
       const reps = parseInt(document.getElementById("machine-reps-input").value,10) || 10;
       const sets = parseInt(document.getElementById("machine-sets-input").value,10) || 3;
+      const minutes = Math.max(1, parseInt(document.getElementById("machine-minutes-input").value,10) || 10);
       const machines = getMachines();
 
       if (editingMachineId) {
         const m = machines.find(x => x.id === editingMachineId);
-        Object.assign(m, {name, group, weight, reps, sets});
+        Object.assign(m, {name, group, type, weight, reps, sets, minutes});
       } else {
         editingMachineId = makeId();
-        machines.push({id:editingMachineId, name, group, weight, reps, sets});
+        machines.push({id:editingMachineId, name, group, type, weight, reps, sets, minutes});
       }
 
       saveMachines(machines);
@@ -2140,7 +2447,7 @@ ${machineLines}`;
         if (!Array.isArray(entry.sets)) continue;
 
         const rows = entry.sets.filter(row =>
-          row.machineName === machineName && isCompletedSet(row)
+          row.machineName === machineName && isCompletedSet(row) && row.kind !== "cardio"
         );
 
         if (rows.length) {
@@ -2258,17 +2565,20 @@ ${machineLines}`;
           });
 
           details = Object.entries(grouped).map(([name, rows]) => {
+            const isCardio = rows.some(row => row.kind === "cardio");
             const setText = rows.map((row, index) => {
               const setNo = row.setNumber || index + 1;
-              return row.status === "skipped"
-                ? `Sæt ${setNo}: sprunget over`
-                : `Sæt ${setNo}: ${row.weight} kg × ${row.reps}`;
+              if (row.status === "skipped") {
+                return isCardio ? "Tid: sprunget over" : `Sæt ${setNo}: sprunget over`;
+              }
+              if (row.kind === "cardio") {
+                return `${row.minutes} min`;
+              }
+              return `Sæt ${setNo}: ${row.weight} kg × ${row.reps}`;
             }).join(" · ");
 
             const completedRows = rows.filter(isCompletedSet);
             const skippedCount = rows.filter(row => row.status === "skipped").length;
-            const previousRows = getPreviousMachinePerformance(history, entryIndex, name);
-            const progress = buildProgressText(completedRows, previousRows);
 
             let statusText = "";
             if (!completedRows.length && skippedCount) {
@@ -2276,6 +2586,19 @@ ${machineLines}`;
             } else if (completedRows.length && skippedCount) {
               statusText = `<div style="font-weight:800;margin-top:4px;">Delvist gennemført</div>`;
             }
+
+            if (isCardio) {
+              return `
+                <div class="history-machine">
+                  <strong>${name}</strong><br>
+                  <span style="color:#6b7280;">${setText}</span>
+                  ${statusText}
+                </div>
+              `;
+            }
+
+            const previousRows = getPreviousMachinePerformance(history, entryIndex, name);
+            const progress = buildProgressText(completedRows, previousRows);
 
             let previousText = "";
             if (completedRows.length && previousRows && previousRows.length) {
@@ -2436,7 +2759,7 @@ ${machineLines}`;
     async function exportBackup() {
       const backup = {
         version: 1,
-        appVersion: "1.1",
+        appVersion: "1.2",
         createdAt: new Date().toISOString(),
         machines: getMachines(),
         programs: getPrograms(),
