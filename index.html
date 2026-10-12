@@ -623,7 +623,7 @@
         </button>
       </section>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
     <section id="program-screen" class="screen">
@@ -636,7 +636,7 @@
 
       <section class="menu" id="start-program-list"></section>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
     <section id="programs-screen" class="screen">
@@ -655,7 +655,7 @@
         <button class="action-button secondary" id="open-program-import" type="button">Importer program fra ChatGPT</button>
       </div>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
 
@@ -682,7 +682,7 @@
         </button>
       </section>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
     <section id="program-edit-screen" class="screen">
@@ -713,7 +713,7 @@
         <button class="action-button danger hidden" id="delete-program-button" type="button">Slet program</button>
       </section>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
     <section id="training-screen" class="screen">
@@ -763,7 +763,9 @@
 
         <div class="actions">
           <button class="action-button primary" id="finish-set" type="button">Færdig med sæt</button>
+          <button class="action-button secondary" id="skip-set" type="button">Spring sæt over</button>
           <button class="action-button secondary" id="next-machine" type="button">Næste maskine</button>
+          <button class="action-button secondary" id="skip-machine" type="button">Spring maskine over</button>
         </div>
 
         <div class="rest-overlay" id="rest-overlay">
@@ -773,14 +775,14 @@
         </div>
 
         <div class="rest-overlay" id="machine-complete">
-          <p class="rest-title">Maskine færdig</p>
+          <p class="rest-title" id="machine-complete-title">Maskine afsluttet</p>
           <div class="rest-time">✓</div>
         </div>
       </section>
 
       <button class="action-button danger" id="cancel-training" type="button">Afbryd træning</button>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
 
@@ -846,7 +848,7 @@
         </div>
       </section>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
     <section id="machines-screen" class="screen">
@@ -863,7 +865,7 @@
         <button class="action-button primary" id="add-machine-button" type="button">+ Tilføj maskine</button>
       </div>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
     <section id="add-machine-screen" class="screen">
@@ -925,7 +927,7 @@
         <button class="action-button danger hidden" id="delete-machine-button" type="button">Slet maskine</button>
       </section>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
     <section id="history-screen" class="screen">
@@ -938,12 +940,12 @@
 
       <section class="menu" id="history-list"></section>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
     <section id="complete-screen" class="screen">
       <header>
-        <h1>Træning gennemført</h1>
+        <h1>Træning afsluttet</h1>
         <p class="subtitle">Godt arbejde</p>
       </header>
 
@@ -954,8 +956,16 @@
             <span class="value-number" id="complete-program-name">Program</span>
           </div>
           <div class="set-row">
-            <span class="value-label" style="margin:0;">Maskiner gennemført</span>
+            <span class="value-label" style="margin:0;">Fuldført</span>
             <span class="value-number" id="complete-machine-count">0</span>
+          </div>
+          <div class="set-row">
+            <span class="value-label" style="margin:0;">Delvist</span>
+            <span class="value-number" id="complete-partial-count">0</span>
+          </div>
+          <div class="set-row">
+            <span class="value-label" style="margin:0;">Sprunget over</span>
+            <span class="value-number" id="complete-skipped-count">0</span>
           </div>
         </div>
 
@@ -964,7 +974,7 @@
         </div>
       </section>
 
-      <footer>Min Træning · v1.0</footer>
+      <footer>Min Træning · v1.1</footer>
     </section>
 
   </main>
@@ -1056,7 +1066,10 @@
     const restTime = document.getElementById("rest-time");
     const machineComplete = document.getElementById("machine-complete");
     const finishSetButton = document.getElementById("finish-set");
+    const skipSetButton = document.getElementById("skip-set");
     const nextMachineButton = document.getElementById("next-machine");
+    const skipMachineButton = document.getElementById("skip-machine");
+    const machineCompleteTitle = document.getElementById("machine-complete-title");
     let restSeconds = 60;
     let restTimer = null;
     let machineFinished = false;
@@ -1091,16 +1104,31 @@
       return workoutSetLog.filter(item => item.machineId === id);
     }
 
+    function isCompletedSet(row) {
+      return !row.status || row.status === "completed";
+    }
+
     function renderCompletedSets() {
       completedSetsBox.innerHTML = "";
       const rows = getCurrentExerciseLog();
+
       rows.forEach((row, index) => {
+        const setNo = row.setNumber || index + 1;
         const div = document.createElement("div");
         div.className = "set-row";
-        div.innerHTML = `
-          <span class="value-label" style="margin:0;">Sæt ${index + 1}</span>
-          <span class="value-number">${row.weight} kg × ${row.reps}</span>
-        `;
+
+        if (row.status === "skipped") {
+          div.innerHTML = `
+            <span class="value-label" style="margin:0;">Sæt ${setNo}</span>
+            <span class="value-number">Sprunget over</span>
+          `;
+        } else {
+          div.innerHTML = `
+            <span class="value-label" style="margin:0;">Sæt ${setNo}</span>
+            <span class="value-number">${row.weight} kg × ${row.reps}</span>
+          `;
+        }
+
         completedSetsBox.appendChild(div);
       });
     }
@@ -1112,9 +1140,11 @@
         if (!Array.isArray(entry.sets)) continue;
 
         const rows = entry.sets.filter(row =>
-          (row.machineId && row.machineId === exercise.id) ||
-          (!row.machineId && row.machineName === exercise.name) ||
-          row.machineName === exercise.name
+          isCompletedSet(row) && (
+            (row.machineId && row.machineId === exercise.id) ||
+            (!row.machineId && row.machineName === exercise.name) ||
+            row.machineName === exercise.name
+          )
         );
 
         if (rows.length) {
@@ -1157,16 +1187,27 @@
       }
     }
 
-    function saveCurrentSetToLog() {
+    function saveCurrentSetToLog(status = "completed", setNumber = currentSet) {
       const exercise = activeExercises[currentExerciseIndex];
       if (!exercise) return;
 
-      workoutSetLog.push({
-        machineId: exercise.id,
-        machineName: exercise.name,
-        weight: Number(weightInput.value) || 0,
-        reps: Number(repsInput.value) || 0
-      });
+      if (status === "skipped") {
+        workoutSetLog.push({
+          machineId: exercise.id,
+          machineName: exercise.name,
+          setNumber,
+          status: "skipped"
+        });
+      } else {
+        workoutSetLog.push({
+          machineId: exercise.id,
+          machineName: exercise.name,
+          setNumber,
+          status: "completed",
+          weight: Number(weightInput.value) || 0,
+          reps: Number(repsInput.value) || 0
+        });
+      }
 
       renderCompletedSets();
     }
@@ -1178,8 +1219,11 @@
 
       stopRestTimer();
       machineComplete.classList.remove("active");
+      machineCompleteTitle.textContent = "Maskine afsluttet";
       machineFinished = false;
       finishSetButton.disabled = false;
+      skipSetButton.disabled = false;
+      skipMachineButton.disabled = false;
       finishSetButton.textContent = "Færdig med sæt";
       nextMachineButton.classList.remove("primary");
       nextMachineButton.classList.add("secondary");
@@ -1208,6 +1252,61 @@
       input.value = decimals ? next.toFixed(decimals).replace(".0", "") : Math.round(next);
     }
 
+    function closeCurrentMachine(message = "Maskine afsluttet") {
+      stopRestTimer();
+      machineFinished = true;
+      machineCompleteTitle.textContent = message;
+      machineComplete.classList.add("active");
+      finishSetButton.disabled = true;
+      skipSetButton.disabled = true;
+      skipMachineButton.disabled = true;
+      finishSetButton.textContent = "Sæt afsluttet";
+      nextMachineButton.classList.remove("secondary");
+      nextMachineButton.classList.add("primary");
+    }
+
+    function getWorkoutMachineStats() {
+      let completed = 0;
+      let partial = 0;
+      let skipped = 0;
+
+      activeExercises.forEach(exercise => {
+        const plannedSets = Math.max(1, Number(exercise.sets) || 3);
+        const rows = workoutSetLog.filter(row => row.machineId === exercise.id);
+        const completedSets = rows.filter(isCompletedSet).length;
+        const skippedSets = rows.filter(row => row.status === "skipped").length;
+
+        if (completedSets >= plannedSets && skippedSets === 0) {
+          completed += 1;
+        } else if (completedSets > 0) {
+          partial += 1;
+        } else if (skippedSets > 0) {
+          skipped += 1;
+        }
+      });
+
+      return { completed, partial, skipped };
+    }
+
+    function completeWorkout() {
+      saveCompletedTraining();
+      const stats = getWorkoutMachineStats();
+
+      document.getElementById("complete-program-name").textContent = activeProgram?.name || "Program";
+      document.getElementById("complete-machine-count").textContent = stats.completed;
+      document.getElementById("complete-partial-count").textContent = stats.partial;
+      document.getElementById("complete-skipped-count").textContent = stats.skipped;
+      showScreen("complete");
+    }
+
+    function goToNextMachineOrFinish() {
+      if (currentExerciseIndex < activeExercises.length - 1) {
+        loadExercise(currentExerciseIndex + 1);
+      } else {
+        completeWorkout();
+      }
+    }
+
     document.getElementById("weight-minus").addEventListener("click", () => changeNumber(weightInput, -2.5, 1));
     document.getElementById("weight-plus").addEventListener("click", () => changeNumber(weightInput, 2.5, 1));
     document.getElementById("reps-minus").addEventListener("click", () => changeNumber(repsInput, -1));
@@ -1216,20 +1315,30 @@
     finishSetButton.addEventListener("click", () => {
       if (machineFinished) return;
 
-      saveCurrentSetToLog();
+      saveCurrentSetToLog("completed", currentSet);
 
       if (currentSet < totalSets) {
         currentSet += 1;
         updateSetDisplay();
         startRestTimer();
       } else {
-        stopRestTimer();
-        machineFinished = true;
-        machineComplete.classList.add("active");
-        finishSetButton.disabled = true;
-        finishSetButton.textContent = "Sæt færdige";
-        nextMachineButton.classList.remove("secondary");
-        nextMachineButton.classList.add("primary");
+        closeCurrentMachine("Maskine fuldført");
+      }
+    });
+
+    skipSetButton.addEventListener("click", () => {
+      if (machineFinished) return;
+
+      stopRestTimer();
+      saveCurrentSetToLog("skipped", currentSet);
+
+      if (currentSet < totalSets) {
+        currentSet += 1;
+        updateSetDisplay();
+      } else {
+        const rows = getCurrentExerciseLog();
+        const completedCount = rows.filter(isCompletedSet).length;
+        closeCurrentMachine(completedCount > 0 ? "Maskine delvist gennemført" : "Maskine sprunget over");
       }
     });
 
@@ -1237,15 +1346,26 @@
 
     nextMachineButton.addEventListener("click", () => {
       if (!machineFinished) return;
+      goToNextMachineOrFinish();
+    });
 
-      if (currentExerciseIndex < activeExercises.length - 1) {
-        loadExercise(currentExerciseIndex + 1);
-      } else {
-        saveCompletedTraining();
-        document.getElementById("complete-program-name").textContent = activeProgram?.name || "Program";
-        document.getElementById("complete-machine-count").textContent = activeExercises.length;
-        showScreen("complete");
+    skipMachineButton.addEventListener("click", () => {
+      if (machineFinished) {
+        goToNextMachineOrFinish();
+        return;
       }
+
+      stopRestTimer();
+
+      // Keep any sets already completed, and explicitly mark all remaining sets skipped.
+      for (let setNo = currentSet; setNo <= totalSets; setNo += 1) {
+        const alreadyLogged = getCurrentExerciseLog().some(row => (row.setNumber || 0) === setNo);
+        if (!alreadyLogged) {
+          saveCurrentSetToLog("skipped", setNo);
+        }
+      }
+
+      goToNextMachineOrFinish();
     });
 
     document.getElementById("complete-home").addEventListener("click", () => {
@@ -2000,10 +2120,14 @@ ${machineLines}`;
 
     function saveCompletedTraining() {
       const history = getHistory();
+      const stats = getWorkoutMachineStats();
       const entry = {
         date: new Date().toISOString(),
         program: activeProgram?.name || "Program",
         machines: activeExercises.length,
+        completedMachines: stats.completed,
+        partialMachines: stats.partial,
+        skippedMachines: stats.skipped,
         sets: workoutSetLog.map(row => ({ ...row }))
       };
       history.unshift(entry);
@@ -2015,7 +2139,10 @@ ${machineLines}`;
         const entry = history[i];
         if (!Array.isArray(entry.sets)) continue;
 
-        const rows = entry.sets.filter(row => row.machineName === machineName);
+        const rows = entry.sets.filter(row =>
+          row.machineName === machineName && isCompletedSet(row)
+        );
+
         if (rows.length) {
           return rows;
         }
@@ -2025,15 +2152,23 @@ ${machineLines}`;
 
     function maxWeight(rows) {
       if (!Array.isArray(rows) || !rows.length) return null;
-      return Math.max(...rows.map(row => Number(row.weight) || 0));
+      const completedRows = rows.filter(isCompletedSet);
+      if (!completedRows.length) return null;
+      return Math.max(...completedRows.map(row => Number(row.weight) || 0));
     }
 
     function buildProgressText(currentRows, previousRows) {
+      const currentCompleted = currentRows.filter(isCompletedSet);
+
+      if (!currentCompleted.length) {
+        return { text: "Ingen gennemførte sæt", cls: "progress-same" };
+      }
+
       if (!previousRows || !previousRows.length) {
         return { text: "Første registrerede træning", cls: "progress-same" };
       }
 
-      const currentMax = maxWeight(currentRows);
+      const currentMax = maxWeight(currentCompleted);
       const previousMax = maxWeight(previousRows);
 
       if (currentMax > previousMax) {
@@ -2086,10 +2221,21 @@ ${machineLines}`;
 
         const main = document.createElement("div");
         main.className = "history-summary-main";
+        const summaryParts = [];
+        const completedMachines = Number.isFinite(Number(entry.completedMachines))
+          ? Number(entry.completedMachines)
+          : Number(entry.machines) || 0;
+        const partialMachines = Number(entry.partialMachines) || 0;
+        const skippedMachines = Number(entry.skippedMachines) || 0;
+
+        summaryParts.push(`${completedMachines} fuldført`);
+        if (partialMachines) summaryParts.push(`${partialMachines} delvis`);
+        if (skippedMachines) summaryParts.push(`${skippedMachines} sprunget over`);
+
         main.innerHTML = `
           <div class="history-summary-date">${date}</div>
           <div class="history-summary-program">${entry.program}</div>
-          <div class="history-summary-count">${entry.machines} maskiner</div>
+          <div class="history-summary-count">${summaryParts.join(" · ")}</div>
         `;
 
         const chevron = document.createElement("div");
@@ -2112,12 +2258,27 @@ ${machineLines}`;
           });
 
           details = Object.entries(grouped).map(([name, rows]) => {
-            const setText = rows.map(row => `${row.weight} kg × ${row.reps}`).join(" · ");
+            const setText = rows.map((row, index) => {
+              const setNo = row.setNumber || index + 1;
+              return row.status === "skipped"
+                ? `Sæt ${setNo}: sprunget over`
+                : `Sæt ${setNo}: ${row.weight} kg × ${row.reps}`;
+            }).join(" · ");
+
+            const completedRows = rows.filter(isCompletedSet);
+            const skippedCount = rows.filter(row => row.status === "skipped").length;
             const previousRows = getPreviousMachinePerformance(history, entryIndex, name);
-            const progress = buildProgressText(rows, previousRows);
+            const progress = buildProgressText(completedRows, previousRows);
+
+            let statusText = "";
+            if (!completedRows.length && skippedCount) {
+              statusText = `<div style="font-weight:800;margin-top:4px;">Maskine sprunget over</div>`;
+            } else if (completedRows.length && skippedCount) {
+              statusText = `<div style="font-weight:800;margin-top:4px;">Delvist gennemført</div>`;
+            }
 
             let previousText = "";
-            if (previousRows && previousRows.length) {
+            if (completedRows.length && previousRows && previousRows.length) {
               const previousMax = maxWeight(previousRows);
               previousText = `<div style="color:#6b7280;margin-top:4px;">Sidst: maks. ${previousMax} kg</div>`;
             }
@@ -2126,8 +2287,9 @@ ${machineLines}`;
               <div class="history-machine">
                 <strong>${name}</strong><br>
                 <span style="color:#6b7280;">${setText}</span>
+                ${statusText}
                 ${previousText}
-                <div class="${progress.cls}">${progress.text}</div>
+                ${completedRows.length ? `<div class="${progress.cls}">${progress.text}</div>` : ""}
               </div>
             `;
           }).join("");
@@ -2274,7 +2436,7 @@ ${machineLines}`;
     async function exportBackup() {
       const backup = {
         version: 1,
-        appVersion: "1.0",
+        appVersion: "1.1",
         createdAt: new Date().toISOString(),
         machines: getMachines(),
         programs: getPrograms(),

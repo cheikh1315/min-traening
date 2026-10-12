@@ -1,4 +1,4 @@
-const CACHE_NAME = "min-traening-v1.0";
+const CACHE_NAME = "min-traening-v1.1";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -17,9 +17,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      )
+      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
     )
   );
   self.clients.claim();
